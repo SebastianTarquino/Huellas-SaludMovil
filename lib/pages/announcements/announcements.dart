@@ -36,7 +36,7 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
 
   // Seleccionar imagen
   Future<void> _pickImage() async {
-    final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+    final picked = await ImagePicker().pickImage(source: ImageSource.gallery, maxWidth: 1080, maxHeight: 1080, imageQuality: 75);
 
     if (picked != null) {
       final bytes = await picked.readAsBytes();

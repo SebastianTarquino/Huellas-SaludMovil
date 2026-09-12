@@ -90,7 +90,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
   // 📸 Seleccionar nueva imagen
     Future<void> _pickImage() async {
     if (!_canEdit) return;
-    final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+    final picked = await ImagePicker().pickImage(source: ImageSource.gallery, maxWidth: 1080, maxHeight: 1080, imageQuality: 75);
     if (picked != null) {
       final bytes = await picked.readAsBytes();
       final base64Str = "data:image/png;base64," + base64Encode(bytes);
