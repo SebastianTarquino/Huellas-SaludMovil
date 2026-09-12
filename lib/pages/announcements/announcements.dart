@@ -36,11 +36,11 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
 
   // Seleccionar imagen
   Future<void> _pickImage() async {
-    final picked = await ImagePicker().pickImage(source: ImageSource.gallery, maxWidth: 1080, maxHeight: 1080, imageQuality: 75);
+    final picked = await ImagePicker().pickImage(source: ImageSource.gallery, maxWidth: 800, maxHeight: 800, imageQuality: 60);
 
     if (picked != null) {
       final bytes = await picked.readAsBytes();
-      final base64Str = "data:image/png;base64," + base64Encode(bytes);
+      final base64Str = "data:image/jpeg;base64," + base64Encode(bytes);
 
       if (kIsWeb) {
         setState(() {
