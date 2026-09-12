@@ -46,11 +46,7 @@ class ProductCard extends StatelessWidget {
                 ),
                 Text(
                   '\$${formatter.format(product.price)}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.purple,
-                  ),
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFFD1C4E9) : const Color(0xFF7E57C2)),
                   textAlign: TextAlign.center,
                 ),
               ],
