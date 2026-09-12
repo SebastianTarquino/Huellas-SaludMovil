@@ -132,7 +132,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                 "SE BUSCA",
                 style: TextStyle(
                   fontSize: 22,
-                  fontWeight: FontWeight.black,
+                  fontWeight: FontWeight.w900,
                   letterSpacing: 2.0,
                   color: textColor,
                 ),
