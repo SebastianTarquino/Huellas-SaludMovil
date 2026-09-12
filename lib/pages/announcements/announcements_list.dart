@@ -1,3 +1,4 @@
+import 'announcement_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:huellas_salud_movil/services/announcement_services.dart';
 import '../../config/api_config.dart';
@@ -75,7 +76,23 @@ class _AnnouncementListPageState extends State<AnnouncementListPage> {
             itemCount: announcements.length,
             itemBuilder: (context, index) {
               final ann = announcements[index];
-              return Container(
+                            return InkWell(
+                onTap: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AnnouncementDetailScreen(announcement: ann),
+                    ),
+                  );
+                  if (result == true) {
+                    setState(() {
+                      _announcementsFuture = _announcementService.listAnnouncements();
+                    });
+                  }
+                },
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 16),
                 margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
                   color: cardBgColor,
@@ -156,6 +173,7 @@ class _AnnouncementListPageState extends State<AnnouncementListPage> {
                       ),
                     ),
                   ],
+                ),
                 ),
               );
             },

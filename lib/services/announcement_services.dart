@@ -156,4 +156,25 @@ class AnnouncementService {
       return [];
     }
   }
+  // Actualizar anuncio (PUT)
+  Future<bool> updateAnnouncement({
+    required String id,
+    required String description,
+    required String cellPhone,
+  }) async {
+    try {
+      final response = await _dio.put(
+        "/internal/announcement/$id",
+        data: {
+          "description": description,
+          "cellPhone": cellPhone,
+        },
+      );
+
+      return response.statusCode == 200 || response.statusCode == 201;
+    } on DioException catch (e) {
+      print("Error en updateAnnouncement: ${e.response?.data}");
+      return false;
+    }
+  }
 }
