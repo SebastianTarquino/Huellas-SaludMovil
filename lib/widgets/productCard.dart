@@ -61,13 +61,26 @@ class ProductCard extends StatelessWidget {
     );
   }
 
-  Widget _buildProductImage(Product product) {
+    Widget _buildProductImage(Product product) {
     if (product.mediaFile != null && product.mediaFile!.attachment.isNotEmpty) {
+      final attach = product.mediaFile!.attachment;
+      if (attach.startsWith('http://') || attach.startsWith('https://')) {
+        return Image.network(
+          attach,
+          height: 130,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => const Icon(
+            Icons.image_not_supported,
+            size: 60,
+            color: Colors.grey,
+          ),
+        );
+      }
       try {
-        final bytes = base64Decode(product.mediaFile!.attachment);
+        final bytes = base64Decode(attach);
         return Image.memory(
-          bytes, // 👈 ancho fijo
-          height: 130, // 👈 alto fijo
+          bytes,
+          height: 130,
           fit: BoxFit.cover,
         );
       } catch (e) {

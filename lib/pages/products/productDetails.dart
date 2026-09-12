@@ -165,10 +165,22 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     );
   }
 
-  Widget _decodeImage(String base64String) {
+    Widget _decodeImage(String base64String) {
+    if (base64String.startsWith('http://') || base64String.startsWith('https://')) {
+      return Image.network(
+        base64String,
+        height: 220,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) => const Icon(
+          Icons.image_not_supported,
+          size: 60,
+          color: Colors.grey,
+        ),
+      );
+    }
     try {
       final bytes = base64Decode(base64String);
-      return Image.memory(bytes, height: 220);
+      return Image.memory(bytes, height: 220, fit: BoxFit.contain);
     } catch (e) {
       return const Icon(
         Icons.image_not_supported,
