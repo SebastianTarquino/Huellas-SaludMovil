@@ -177,4 +177,15 @@ class AnnouncementService {
       return false;
     }
   }
+
+  // Eliminar anuncio (DELETE)
+  Future<bool> deleteAnnouncement(String id) async {
+    try {
+      final response = await _dio.delete("/internal/announcement/$id");
+      return response.statusCode == 200;
+    } on DioException catch (e) {
+      print("Error en deleteAnnouncement: ${e.response?.data}");
+      return false;
+    }
+  }
 }

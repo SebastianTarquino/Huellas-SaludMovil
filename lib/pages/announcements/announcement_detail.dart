@@ -128,6 +128,57 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
     }
   }
 
+  
+  Future<void> _confirmDelete() async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Eliminar Anuncio"),
+        content: const Text("¿Estás seguro de que deseas eliminar este anuncio? Esta acción no se puede deshacer."),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancelar"),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () async {
+              Navigator.pop(context);
+              _deleteAnnouncement();
+            },
+            child: const Text("Eliminar", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _deleteAnnouncement() async {
+    setState(() => _isLoading = true);
+    final id = widget.announcement["idAnnouncement"];
+    final success = await _announcementService.deleteAnnouncement(id.toString());
+    setState(() => _isLoading = false);
+
+    if (mounted) {
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("¡Anuncio eliminado exitosamente!"),
+            backgroundColor: Colors.red,
+          ),
+        );
+        Navigator.pop(context, true);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Error al eliminar el anuncio"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   Widget _buildImage(String? announcementId) {
     if (announcementId == null || announcementId.isEmpty) {
       return ClipRRect(
@@ -371,32 +422,55 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
 
               const SizedBox(height: 32),
 
-              // Botón Acción: Confirmar (si puede editar) o Contactar por Teléfono (si solo lectura)
+              // Botón Acción: Confirmar + Eliminar (si puede editar) o Contactar por Teléfono (si solo lectura)
               if (_canEdit)
-                SizedBox(
-                  width: 220,
-                  height: 48,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _updateAnnouncement,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF7E57C2),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 3,
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
-                          )
-                        : const Text(
-                            "Confirmar",
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                Column(
+                  children: [
+                    SizedBox(
+                      width: 220,
+                      height: 48,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _updateAnnouncement,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF7E57C2),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                  ),
+                          elevation: 3,
+                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                              )
+                            : const Text(
+                                "Confirmar",
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                              ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: 220,
+                      height: 44,
+                      child: OutlinedButton.icon(
+                        onPressed: _isLoading ? null : _confirmDelete,
+                        icon: const Icon(Icons.delete_outline, color: Colors.red),
+                        label: const Text(
+                          "Eliminar Anuncio",
+                          style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Colors.red, width: 1.5),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 )
               else
                 SizedBox(
