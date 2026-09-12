@@ -191,15 +191,7 @@ class _UserFormScreenState extends State<UserFormScreen> {
                   prefixIcon: Icon(Icons.person_outline),
                   border: OutlineInputBorder(),
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Por favor ingrese su apellido';
-                  }
-                  if (value.trim().length < 2) {
-                    return 'El apellido debe tener al menos 2 caracteres';
-                  }
-                  return null;
-                },
+                validator: (value) => null,
               ),
               const SizedBox(height: 16),
 
@@ -259,7 +251,8 @@ class _UserFormScreenState extends State<UserFormScreen> {
                   if (value == null || value.trim().isEmpty) {
                     return 'Por favor ingrese su correo electrónico';
                   }
-                  if (!RegExp(r'^[w-.]+@([w-]+.)+[w-]{2,4}$').hasMatch(value.trim())) {
+                  final emailStr = value.trim();
+                  if (!emailStr.contains('@') || !emailStr.contains('.') || emailStr.length < 5) {
                     return 'Por favor ingrese un correo electrónico válido';
                   }
                   return null;
