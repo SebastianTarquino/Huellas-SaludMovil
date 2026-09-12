@@ -1,10 +1,10 @@
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io' as io;
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'dart:io' as io;
-import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../services/announcement_services.dart';
 
@@ -22,10 +22,17 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
   final AnnouncementService _announcementService = AnnouncementService();
 
   Uint8List? _webImageBytes;
-  io.File? _selectedImage;  
+  io.File? _selectedImage;
   bool _isLoading = false;
 
-  // 📸 Seleccionar imagen
+  @override
+  void dispose() {
+    _descriptionController.dispose();
+    _cellPhoneController.dispose();
+    super.dispose();
+  }
+
+  // Seleccionar imagen
   Future<void> _pickImage() async {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
 
@@ -39,7 +46,7 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
     }
   }
 
-  // 🖼️ Mostrar imagen seleccionada o placeholder
+  // Mostrar imagen seleccionada o placeholder
   Widget _buildPreviewImage() {
     if (kIsWeb && _webImageBytes != null) {
       return ClipRRect(
@@ -74,17 +81,48 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
     }
   }
 
-  // 🟣 Crear anuncio y subir imagen
+  // Crear anuncio y subir imagen
   Future<void> _createAnnouncement() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
     try {
+      String nameUserCreated = "Usuario";
+      String emailUserCreated = "user@huellassalud.com";
+      String roleUserCreated = "CLIENTE";
+
+      final prefs = await SharedPreferences.getInstance();
+      final userStr = prefs.getString('auth_user');
+
+      if (userStr != null) {
+        try {
+          final parsed = jsonDecode(userStr);
+          final userData = (parsed['data'] is Map) ? parsed['data'] : parsed;
+          final name = userData['name'] ?? '';
+          final lastName = userData['lastName'] ?? '';
+          if (name.toString().isNotEmpty) {
+            nameUserCreated = "$name $lastName".trim();
+          }
+          if (userData['email'] != null) {
+            emailUserCreated = userData['email'].toString();
+          }
+          if (userData['role'] != null) {
+            roleUserCreated = userData['role'].toString();
+          }
+        } catch (e) {
+          print("Error al leer auth_user: $e");
+        }
+      }
+
+      print("Creando anuncio para: $nameUserCreated ($emailUserCreated)");
+
       final id = await _announcementService.createAnnouncement(
-  description: _descriptionController.text.trim(),
-  cellPhone: _cellPhoneController.text.trim(),
-  
+        description: _descriptionController.text.trim(),
+        cellPhone: _cellPhoneController.text.trim(),
+        nameUserCreated: nameUserCreated,
+        emailUserCreated: emailUserCreated,
+        roleUserCreated: roleUserCreated,
       );
 
       if (id != null) {
@@ -94,7 +132,6 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
             imageFile: _selectedImage!,
           );
         } else if (kIsWeb && _webImageBytes != null) {
-          // 🟣 Subida para web
           await _announcementService.uploadAnnouncementImageWeb(
             announcementId: id,
             bytes: _webImageBytes!,
@@ -103,18 +140,26 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("✅ Anuncio creado exitosamente")),
+            const SnackBar(
+              content: Text("¡Anuncio publicado exitosamente!"),
+              backgroundColor: Colors.purple,
+            ),
           );
-          Navigator.pop(context);
+          Navigator.pop(context, true);
         }
       }
     } catch (e) {
-      print("❌ Error al crear anuncio: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Error al crear el anuncio")),
-      );
+      print("Error al crear anuncio: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Error al crear el anuncio"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -122,8 +167,8 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.purple,
         title: const Text("Crear anuncio"),
+        centerTitle: true,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -145,7 +190,7 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
                 ),
                 maxLines: 4,
                 validator: (value) =>
-                    value == null || value.isEmpty ? "Campo requerido" : null,
+                    value == null || value.trim().isEmpty ? "Campo requerido" : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -156,7 +201,7 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
                 ),
                 keyboardType: TextInputType.phone,
                 validator: (value) =>
-                    value == null || value.isEmpty ? "Campo requerido" : null,
+                    value == null || value.trim().isEmpty ? "Campo requerido" : null,
               ),
               const SizedBox(height: 20),
               SizedBox(

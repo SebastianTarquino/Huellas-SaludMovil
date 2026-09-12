@@ -1,3 +1,4 @@
+import 'announcements.dart';
 import 'announcement_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:huellas_salud_movil/services/announcement_services.dart';
@@ -58,6 +59,23 @@ class _AnnouncementListPageState extends State<AnnouncementListPage> {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF12121A) : const Color(0xFFF5F3F9),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: const Color(0xFF7E57C2),
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AnnouncementPage(),
+            ),
+          );
+          if (result == true) {
+            setState(() {
+              _announcementsFuture = _announcementService.listAnnouncements();
+            });
+          }
+        },
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _announcementsFuture,
         builder: (context, snapshot) {
