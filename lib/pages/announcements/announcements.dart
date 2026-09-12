@@ -1,3 +1,4 @@
+import '../../widgets/phone_input_field.dart';
 import 'dart:convert';
 import 'dart:io' as io;
 import 'dart:typed_data';
@@ -193,15 +194,9 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
                     value == null || value.trim().isEmpty ? "Campo requerido" : null,
               ),
               const SizedBox(height: 16),
-              TextFormField(
+              PhoneInputField(
                 controller: _cellPhoneController,
-                decoration: const InputDecoration(
-                  labelText: "Teléfono de contacto",
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.phone,
-                validator: (value) =>
-                    value == null || value.trim().isEmpty ? "Campo requerido" : null,
+                labelText: "Teléfono de contacto",
               ),
               const SizedBox(height: 20),
               SizedBox(

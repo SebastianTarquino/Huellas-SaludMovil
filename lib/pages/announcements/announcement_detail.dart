@@ -1,3 +1,4 @@
+import '../../widgets/phone_input_field.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -395,29 +396,10 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                   ),
                 )
               else
-                TextFormField(
+                PhoneInputField(
                   controller: _cellPhoneController,
-                  keyboardType: TextInputType.phone,
-                  style: TextStyle(color: textColor),
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: fieldFillColor,
-                    suffixIcon: const Icon(Icons.edit, color: Colors.purple, size: 20),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.purple.withOpacity(0.3)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.purple.withOpacity(0.3)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Colors.purple, width: 2),
-                    ),
-                  ),
-                  validator: (val) => val == null || val.trim().isEmpty ? "Requerido" : null,
+                  labelText: "Teléfono",
+                  enabled: _canEdit,
                 ),
 
               const SizedBox(height: 32),

@@ -1,3 +1,4 @@
+import '../../widgets/phone_input_field.dart';
 import 'package:flutter/material.dart';
 import '../../widgets/appbar.dart';
 import '../../services/users_services.dart';
@@ -261,23 +262,9 @@ class _UserFormScreenState extends State<UserFormScreen> {
               const SizedBox(height: 16),
 
               // Teléfono
-              TextFormField(
+              PhoneInputField(
                 controller: _phoneController,
-                keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(
-                  labelText: 'Teléfono',
-                  prefixIcon: Icon(Icons.phone),
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Por favor ingrese su teléfono';
-                  }
-                  if (value.trim().length < 7) {
-                    return 'El teléfono debe tener al menos 7 dígitos';
-                  }
-                  return null;
-                },
+                labelText: 'Teléfono',
               ),
               const SizedBox(height: 16),
 
