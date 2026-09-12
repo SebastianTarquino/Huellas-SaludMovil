@@ -93,9 +93,11 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
     if (picked != null) {
       if (kIsWeb) {
         final bytes = await picked.readAsBytes();
-        setState(() => _webImageBytes = bytes);
+        final base64Str = "data:image/png;base64," + base64Encode(bytes);
+        setState(() { _webImageBytes = bytes; _imageBase64 = base64Str; });
       } else {
-        setState(() => _selectedImage = io.File(picked.path));
+        final base64Str = "data:image/png;base64," + base64Encode(bytes);
+        setState(() { _selectedImage = io.File(picked.path); _imageBase64 = base64Str; });
       }
     }
   }
@@ -112,6 +114,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
       id: idStr,
       description: _descriptionController.text.trim(),
       cellPhone: _cellPhoneController.text.trim(),
+      imageBase64: _imageBase64,
     );
 
     bool imageUploaded = true;
@@ -250,7 +253,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
       );
     } else {
       final imageUrl =
-          "${ApiConfig.internalBaseUrl}avatar-user/Announcement/$announcementId?v=${DateTime.now().millisecondsSinceEpoch}";
+          "${ApiConfig.internalBaseUrl}avatar-user/Announcement/$announcementId?v=${widget.announcement["updatedAt"] ?? announcementId}";
 
       imageWidget = Image.network(
         imageUrl,

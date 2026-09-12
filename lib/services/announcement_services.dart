@@ -18,6 +18,7 @@ class AnnouncementService {
     String? roleUserCreated,
     File? imageFile,
     Uint8List? imageBytes,
+    String? imageBase64,
   }) async {
     try {
       final body = {
@@ -28,6 +29,7 @@ class AnnouncementService {
           "nameUserCreated": nameUserCreated ?? "Usuario",
           "emailUserCreated": emailUserCreated ?? "user@huellassalud.com",
           "roleUserCreated": roleUserCreated ?? "CLIENTE",
+          if (imageBase64 != null) "imageBase64": imageBase64,
         }
       };
 
@@ -44,7 +46,7 @@ class AnnouncementService {
         final data = response.data["data"];
         final String? announcementId = data?["idAnnouncement"];
 
-        if (announcementId != null) {
+        if (announcementId != null && imageBase64 == null) {
           if (kIsWeb && imageBytes != null) {
             await uploadAnnouncementImageWeb(
               announcementId: announcementId,
@@ -166,6 +168,7 @@ class AnnouncementService {
     required String id,
     required String description,
     required String cellPhone,
+    String? imageBase64,
   }) async {
     try {
       final response = await _dio.put(
@@ -173,6 +176,7 @@ class AnnouncementService {
         data: {
           "description": description,
           "cellPhone": cellPhone,
+          if (imageBase64 != null) "imageBase64": imageBase64,
         },
       );
 

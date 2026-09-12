@@ -24,6 +24,7 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
 
   Uint8List? _webImageBytes;
   io.File? _selectedImage;
+  String? _imageBase64;
   bool _isLoading = false;
 
   @override
@@ -38,11 +39,19 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
 
     if (picked != null) {
+      final bytes = await picked.readAsBytes();
+      final base64Str = "data:image/png;base64," + base64Encode(bytes);
+
       if (kIsWeb) {
-        final bytes = await picked.readAsBytes();
-        setState(() => _webImageBytes = bytes);
+        setState(() {
+          _webImageBytes = bytes;
+          _imageBase64 = base64Str;
+        });
       } else {
-        setState(() => _selectedImage = io.File(picked.path));
+        setState(() {
+          _selectedImage = io.File(picked.path);
+          _imageBase64 = base64Str;
+        });
       }
     }
   }
@@ -124,21 +133,12 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
         nameUserCreated: nameUserCreated,
         emailUserCreated: emailUserCreated,
         roleUserCreated: roleUserCreated,
+        imageBase64: _imageBase64,
+        imageFile: _selectedImage,
+        imageBytes: _webImageBytes,
       );
 
       if (id != null) {
-        if (!kIsWeb && _selectedImage != null) {
-          await _announcementService.uploadAnnouncementImage(
-            announcementId: id,
-            imageFile: _selectedImage!,
-          );
-        } else if (kIsWeb && _webImageBytes != null) {
-          await _announcementService.uploadAnnouncementImageWeb(
-            announcementId: id,
-            bytes: _webImageBytes!,
-          );
-        }
-
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
