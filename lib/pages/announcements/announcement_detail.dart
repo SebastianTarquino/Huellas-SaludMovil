@@ -172,31 +172,19 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          "ANUNCIOS",
-          style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2),
+          "Anuncios",
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         elevation: 0,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Header Title: SE BUSCA / ANUNCIO
-              Text(
-                "SE BUSCA",
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 2.0,
-                  color: textColor,
-                ),
-              ),
-              const SizedBox(height: 16),
-
               // Large Product / Announcement Image
               _buildImage(widget.announcement["idAnnouncement"]),
               const SizedBox(height: 16),
@@ -251,7 +239,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
               // Campo: Descripción
               Align(
@@ -266,37 +254,57 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              TextFormField(
-                controller: _descriptionController,
-                enabled: _canEdit,
-                maxLines: 2,
-                style: TextStyle(color: textColor),
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: fieldFillColor,
-                  suffixIcon: _canEdit
-                      ? const Icon(Icons.edit, color: Colors.purple, size: 20)
-                      : const Icon(Icons.lock, color: Colors.grey, size: 20),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  border: OutlineInputBorder(
+
+              // Si es solo lectura, mostramos contenedor expandido con todo el texto completo
+              if (!_canEdit)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: fieldFillColor,
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.purple.withOpacity(0.3)),
+                    border: Border.all(
+                      color: isDark ? const Color(0xFF2C2C3E) : const Color(0xFFE0E0E0),
+                    ),
                   ),
-                  disabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey.withOpacity(0.3)),
+                  child: Text(
+                    _descriptionController.text.isNotEmpty
+                        ? _descriptionController.text
+                        : "Sin descripción",
+                    style: TextStyle(
+                      fontSize: 15,
+                      height: 1.4,
+                      color: textColor,
+                    ),
                   ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.purple.withOpacity(0.3)),
+                )
+              else
+                TextFormField(
+                  controller: _descriptionController,
+                  maxLines: null, // Multilínea auto-expandible en modo edición
+                  minLines: 3,
+                  style: TextStyle(color: textColor),
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: fieldFillColor,
+                    suffixIcon: const Icon(Icons.edit, color: Colors.purple, size: 20),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.purple.withOpacity(0.3)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.purple.withOpacity(0.3)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Colors.purple, width: 2),
+                    ),
                   ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.purple, width: 2),
-                  ),
+                  validator: (val) => val == null || val.trim().isEmpty ? "Requerido" : null,
                 ),
-                validator: (val) => val == null || val.trim().isEmpty ? "Requerido" : null,
-              ),
+
               const SizedBox(height: 18),
 
               // Campo: Teléfono
@@ -312,37 +320,55 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              TextFormField(
-                controller: _cellPhoneController,
-                enabled: _canEdit,
-                keyboardType: TextInputType.phone,
-                style: TextStyle(color: textColor),
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: fieldFillColor,
-                  suffixIcon: _canEdit
-                      ? const Icon(Icons.edit, color: Colors.purple, size: 20)
-                      : const Icon(Icons.lock, color: Colors.grey, size: 20),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  border: OutlineInputBorder(
+
+              if (!_canEdit)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: fieldFillColor,
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.purple.withOpacity(0.3)),
+                    border: Border.all(
+                      color: isDark ? const Color(0xFF2C2C3E) : const Color(0xFFE0E0E0),
+                    ),
                   ),
-                  disabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey.withOpacity(0.3)),
+                  child: Text(
+                    _cellPhoneController.text.isNotEmpty
+                        ? _cellPhoneController.text
+                        : "No disponible",
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: textColor,
+                    ),
                   ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.purple.withOpacity(0.3)),
+                )
+              else
+                TextFormField(
+                  controller: _cellPhoneController,
+                  keyboardType: TextInputType.phone,
+                  style: TextStyle(color: textColor),
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: fieldFillColor,
+                    suffixIcon: const Icon(Icons.edit, color: Colors.purple, size: 20),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.purple.withOpacity(0.3)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.purple.withOpacity(0.3)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Colors.purple, width: 2),
+                    ),
                   ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.purple, width: 2),
-                  ),
+                  validator: (val) => val == null || val.trim().isEmpty ? "Requerido" : null,
                 ),
-                validator: (val) => val == null || val.trim().isEmpty ? "Requerido" : null,
-              ),
+
               const SizedBox(height: 32),
 
               // Botón Acción: Confirmar (si puede editar) o Contactar por Teléfono (si solo lectura)
