@@ -63,4 +63,44 @@ class UserService {
       }
     }
   }
+
+  Future<bool> registerUser({
+    required String name,
+    required String lastName,
+    required String email,
+    required String documentNumber,
+    required String password,
+    String? phone,
+    String? address,
+  }) async {
+    try {
+      final response = await _dio.post(
+        'user/create',
+        data: {
+          'data': {
+            'name': name,
+            'lastName': lastName,
+            'email': email,
+            'documentNumber': documentNumber,
+            'password': password,
+            'phone': phone,
+            'address': address,
+            'role': 'CLIENTE',
+          }
+        },
+      );
+
+      return response.statusCode == 200 || response.statusCode == 201;
+    } on DioException catch (e) {
+      String msg = 'Error al registrar usuario';
+      if (e.response != null && e.response?.data != null) {
+        final data = e.response?.data;
+        if (data is Map && data['message'] != null) {
+          msg = data['message'];
+        }
+      }
+      throw Exception(msg);
+    }
+  }
+
 }
