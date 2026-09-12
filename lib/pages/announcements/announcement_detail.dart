@@ -1,6 +1,10 @@
 import '../../widgets/phone_input_field.dart';
 import 'dart:convert';
+import 'dart:io' as io;
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../config/api_config.dart';
@@ -22,6 +26,9 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
   final AnnouncementService _announcementService = AnnouncementService();
   bool _isLoading = false;
   bool _canEdit = false;
+
+  Uint8List? _webImageBytes;
+  io.File? _selectedImage;
 
   @override
   void initState() {
@@ -79,25 +86,63 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
     super.dispose();
   }
 
+  // 📸 Seleccionar nueva imagen
+  Future<void> _pickImage() async {
+    if (!_canEdit) return;
+    final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      if (kIsWeb) {
+        final bytes = await picked.readAsBytes();
+        setState(() => _webImageBytes = bytes);
+      } else {
+        setState(() => _selectedImage = io.File(picked.path));
+      }
+    }
+  }
+
   Future<void> _updateAnnouncement() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
     final id = widget.announcement["idAnnouncement"];
+    final idStr = id.toString();
+
     final success = await _announcementService.updateAnnouncement(
-      id: id.toString(),
+      id: idStr,
       description: _descriptionController.text.trim(),
       cellPhone: _cellPhoneController.text.trim(),
     );
+
+    bool imageUploaded = true;
+    if (success) {
+      try {
+        if (!kIsWeb && _selectedImage != null) {
+          await _announcementService.uploadAnnouncementImage(
+            announcementId: idStr,
+            imageFile: _selectedImage!,
+          );
+        } else if (kIsWeb && _webImageBytes != null) {
+          await _announcementService.uploadAnnouncementImageWeb(
+            announcementId: idStr,
+            bytes: _webImageBytes!,
+          );
+        }
+      } catch (e) {
+        print("Error al subir imagen de anuncio: $e");
+        imageUploaded = false;
+      }
+    }
 
     setState(() => _isLoading = false);
 
     if (mounted) {
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("¡Anuncio actualizado con éxito!"),
+          SnackBar(
+            content: Text(imageUploaded
+                ? "¡Anuncio e imagen actualizados con éxito!"
+                : "Anuncio actualizado"),
             backgroundColor: Colors.purple,
           ),
         );
@@ -129,7 +174,6 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
     }
   }
 
-  
   Future<void> _confirmDelete() async {
     showDialog(
       context: context,
@@ -181,24 +225,34 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
   }
 
   Widget _buildImage(String? announcementId) {
-    if (announcementId == null || announcementId.isEmpty) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Image.asset(
-          'assets/img/images/placeholder.png',
-          fit: BoxFit.cover,
-          width: double.infinity,
-          height: 240,
-        ),
+    Widget imageWidget;
+
+    if (kIsWeb && _webImageBytes != null) {
+      imageWidget = Image.memory(
+        _webImageBytes!,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: 240,
       );
-    }
+    } else if (!kIsWeb && _selectedImage != null) {
+      imageWidget = Image.file(
+        _selectedImage!,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: 240,
+      );
+    } else if (announcementId == null || announcementId.isEmpty) {
+      imageWidget = Image.asset(
+        'assets/img/images/placeholder.png',
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: 240,
+      );
+    } else {
+      final imageUrl =
+          "${ApiConfig.internalBaseUrl}avatar-user/Announcement/$announcementId";
 
-    final imageUrl =
-        "${ApiConfig.internalBaseUrl}avatar-user/Announcement/$announcementId";
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: Image.network(
+      imageWidget = Image.network(
         imageUrl,
         fit: BoxFit.cover,
         width: double.infinity,
@@ -211,6 +265,57 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
             height: 240,
           );
         },
+      );
+    }
+
+    final clippedWidget = ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: imageWidget,
+    );
+
+    if (!_canEdit) {
+      return clippedWidget;
+    }
+
+    return GestureDetector(
+      onTap: _pickImage,
+      child: Stack(
+        children: [
+          clippedWidget,
+          Positioned(
+            bottom: 12,
+            right: 12,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.purple.withOpacity(0.85),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 4,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.camera_alt, color: Colors.white, size: 16),
+                  SizedBox(width: 6),
+                  Text(
+                    "Cambiar foto",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -258,13 +363,15 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                     Row(
                       children: [
                         const Icon(Icons.person, size: 18, color: Colors.purple),
-                        const SizedBox(width: 6),
-                        Text(
-                          "Publicado por: ${widget.announcement["nameUserCreated"] ?? "Usuario"}",
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: textColor.withOpacity(0.85),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            "Publicado por: ${widget.announcement['nameUserCreated'] ?? 'Usuario'}",
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: textColor,
+                            ),
                           ),
                         ),
                       ],
@@ -273,11 +380,11 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                     Row(
                       children: [
                         Icon(
-                          _canEdit ? Icons.edit : Icons.lock_outline,
-                          size: 16,
+                          _canEdit ? Icons.edit_note : Icons.visibility,
+                          size: 18,
                           color: _canEdit ? Colors.green : Colors.orange,
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 8),
                         Text(
                           _canEdit ? "Modo Edición Permitido" : "Modo Solo Lectura",
                           style: TextStyle(
