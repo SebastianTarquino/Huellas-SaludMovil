@@ -9,36 +9,40 @@ class AnnouncementService {
     BaseOptions(baseUrl: ApiConfig.baseUrl),
   );
 
-  // 🟣 Crear anuncio
+  // Crear anuncio
   Future<String?> createAnnouncement({
     required String description,
     required String cellPhone,
+    String? nameUserCreated,
+    String? emailUserCreated,
+    String? roleUserCreated,
     File? imageFile,
     Uint8List? imageBytes,
   }) async {
     try {
-
       final body = {
         "data": {
           "description": description,
           "cellPhone": cellPhone,
           "status": true,
+          "nameUserCreated": nameUserCreated ?? "Usuario",
+          "emailUserCreated": emailUserCreated ?? "user@huellassalud.com",
+          "roleUserCreated": roleUserCreated ?? "CLIENTE",
         }
       };
 
-      print("📤 Enviando datos al servidor: $body");
+      print("Enviando datos al servidor: $body");
 
       final response = await _dio.post(
         "/internal/announcement/create",
         data: body,
       );
 
-      print("✅ Respuesta del servidor: ${response.data}");
+      print("Respuesta del servidor: ${response.data}");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = response.data["data"];
         final String? announcementId = data?["idAnnouncement"];
-
 
         if (announcementId != null) {
           if (kIsWeb && imageBytes != null) {
@@ -56,16 +60,16 @@ class AnnouncementService {
 
         return announcementId;
       } else {
-        print("⚠️ Error al crear anuncio: ${response.statusCode}");
+        print("Error al crear anuncio: ${response.statusCode}");
         return null;
       }
     } on DioException catch (e) {
-      print("❌ Error en createAnnouncement: ${e.response?.data}");
+      print("Error en createAnnouncement: ${e.response?.data}");
       rethrow;
     }
   }
 
-  // 🟣 Subir imagen (Android/iOS)
+  // Subir imagen (Android/iOS)
   Future<void> uploadAnnouncementImage({
     required String announcementId,
     required File imageFile,
@@ -78,7 +82,7 @@ class AnnouncementService {
         ),
       });
 
-      print("📸 Subiendo imagen para anuncio ID: $announcementId");
+      print("Subiendo imagen para anuncio ID: $announcementId");
 
       final response = await _dio.post(
         "/internal/avatar-user/announcement/$announcementId",
@@ -86,17 +90,17 @@ class AnnouncementService {
       );
 
       if (response.statusCode == 200) {
-        print("✅ Imagen subida correctamente");
+        print("Imagen subida correctamente");
       } else {
-        print("⚠️ Error al subir imagen: ${response.statusCode}");
+        print("Error al subir imagen: ${response.statusCode}");
       }
     } on DioException catch (e) {
-      print("❌ Error al subir imagen: ${e.response?.data}");
+      print("Error al subir imagen: ${e.response?.data}");
       rethrow;
     }
   }
 
-  // 🟣 Subir imagen (Web)
+  // Subir imagen (Web)
   Future<void> uploadAnnouncementImageWeb({
     required String announcementId,
     required Uint8List bytes,
@@ -109,7 +113,7 @@ class AnnouncementService {
         ),
       });
 
-      print("🌐 Subiendo imagen (Web) para anuncio ID: $announcementId");
+      print("Subiendo imagen (Web) para anuncio ID: $announcementId");
 
       final response = await _dio.post(
         "/internal/avatar-user/announcement/$announcementId",
@@ -117,17 +121,17 @@ class AnnouncementService {
       );
 
       if (response.statusCode == 200) {
-        print("✅ Imagen subida correctamente (Web)");
+        print("Imagen subida correctamente (Web)");
       } else {
-        print("⚠️ Error al subir imagen en Web: ${response.statusCode}");
+        print("Error al subir imagen en Web: ${response.statusCode}");
       }
     } on DioException catch (e) {
-      print("❌ Error al subir imagen Web: ${e.response?.data}");
+      print("Error al subir imagen Web: ${e.response?.data}");
       rethrow;
     }
   }
 
-  // 🟣 Listar anuncios
+  // Listar anuncios
   Future<List<Map<String, dynamic>>> listAnnouncements() async {
     try {
       final response =
@@ -142,20 +146,21 @@ class AnnouncementService {
 
           return {
             ...data,
-            "nameUserCreated": meta["nameUserCreated"],
-            "emailUserCreated": meta["emailUserCreated"],
-            "roleUserCreated": meta["roleUserCreated"],
+            "nameUserCreated": meta["nameUserCreated"] ?? data["nameUserCreated"],
+            "emailUserCreated": meta["emailUserCreated"] ?? data["emailUserCreated"],
+            "roleUserCreated": meta["roleUserCreated"] ?? data["roleUserCreated"],
           };
         }).toList();
       }
 
-      print("⚠️ Respuesta inesperada: ${response.statusCode}");
+      print("Respuesta inesperada: ${response.statusCode}");
       return [];
     } on DioException catch (e) {
-      print("❌ Error listAnnouncements: ${e.response?.data}");
+      print("Error listAnnouncements: ${e.response?.data}");
       return [];
     }
   }
+
   // Actualizar anuncio (PUT)
   Future<bool> updateAnnouncement({
     required String id,
