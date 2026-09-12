@@ -250,7 +250,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
       );
     } else {
       final imageUrl =
-          "${ApiConfig.internalBaseUrl}avatar-user/Announcement/$announcementId";
+          "${ApiConfig.internalBaseUrl}avatar-user/Announcement/$announcementId?v=${DateTime.now().millisecondsSinceEpoch}";
 
       imageWidget = Image.network(
         imageUrl,
