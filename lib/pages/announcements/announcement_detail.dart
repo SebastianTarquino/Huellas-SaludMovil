@@ -29,6 +29,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
 
   Uint8List? _webImageBytes;
   io.File? _selectedImage;
+  String? _imageBase64;
 
   @override
   void initState() {
@@ -87,17 +88,22 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
   }
 
   // 📸 Seleccionar nueva imagen
-  Future<void> _pickImage() async {
+    Future<void> _pickImage() async {
     if (!_canEdit) return;
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (picked != null) {
+      final bytes = await picked.readAsBytes();
+      final base64Str = "data:image/png;base64," + base64Encode(bytes);
       if (kIsWeb) {
-        final bytes = await picked.readAsBytes();
-        final base64Str = "data:image/png;base64," + base64Encode(bytes);
-        setState(() { _webImageBytes = bytes; _imageBase64 = base64Str; });
+        setState(() {
+          _webImageBytes = bytes;
+          _imageBase64 = base64Str;
+        });
       } else {
-        final base64Str = "data:image/png;base64," + base64Encode(bytes);
-        setState(() { _selectedImage = io.File(picked.path); _imageBase64 = base64Str; });
+        setState(() {
+          _selectedImage = io.File(picked.path);
+          _imageBase64 = base64Str;
+        });
       }
     }
   }
@@ -253,7 +259,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
       );
     } else {
       final imageUrl =
-          "${ApiConfig.internalBaseUrl}avatar-user/Announcement/$announcementId?v=${widget.announcement["updatedAt"] ?? announcementId}";
+          "${ApiConfig.internalBaseUrl}avatar-user/Announcement/$announcementId?v=$announcementId";
 
       imageWidget = Image.network(
         imageUrl,

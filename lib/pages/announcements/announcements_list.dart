@@ -32,7 +32,7 @@ class _AnnouncementListPageState extends State<AnnouncementListPage> {
     }
 
     final imageUrl =
-        "${ApiConfig.internalBaseUrl}avatar-user/Announcement/$announcementId?v=${ann["updatedAt"] ?? announcementId}";
+        "${ApiConfig.internalBaseUrl}avatar-user/Announcement/$announcementId?v=$announcementId";
 
     return Image.network(
       imageUrl,
