@@ -1,4 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../config/api_config.dart';
 import '../../services/announcement_services.dart';
 
@@ -17,6 +20,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
   late TextEditingController _cellPhoneController;
   final AnnouncementService _announcementService = AnnouncementService();
   bool _isLoading = false;
+  bool _canEdit = false;
 
   @override
   void initState() {
@@ -27,6 +31,44 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
     _cellPhoneController = TextEditingController(
       text: widget.announcement["cellPhone"] ?? "",
     );
+    _checkPermissions();
+  }
+
+  Future<void> _checkPermissions() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userStr = prefs.getString('auth_user');
+
+    bool allowed = false;
+    if (userStr != null) {
+      try {
+        final parsed = jsonDecode(userStr);
+        final userData = (parsed['data'] is Map) ? parsed['data'] : parsed;
+        final role = (userData['role'] ?? 'CLIENTE').toString().toUpperCase();
+        final userEmail = (userData['email'] ?? '').toString().trim().toLowerCase();
+        final userName = (userData['name'] ?? '').toString().trim().toLowerCase();
+
+        // ADMIN y VETERINARIO pueden editar cualquier anuncio
+        if (role == 'ADMIN' || role == 'VETERINARIO') {
+          allowed = true;
+        } else if (role == 'CLIENTE') {
+          // CLIENTE solo edita si fue creado por él
+          final annEmail = (widget.announcement['emailUserCreated'] ?? '').toString().trim().toLowerCase();
+          final annName = (widget.announcement['nameUserCreated'] ?? '').toString().trim().toLowerCase();
+
+          if (userEmail.isNotEmpty && annEmail.isNotEmpty && userEmail == annEmail) {
+            allowed = true;
+          } else if (userName.isNotEmpty && annName.isNotEmpty && (annName.contains(userName) || userName.contains(annName))) {
+            allowed = true;
+          }
+        }
+      } catch (e) {
+        print("Error al verificar permisos: $e");
+      }
+    }
+
+    setState(() {
+      _canEdit = allowed;
+    });
   }
 
   @override
@@ -66,6 +108,22 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
             backgroundColor: Colors.red,
           ),
         );
+      }
+    }
+  }
+
+  Future<void> _makeCall() async {
+    final phone = _cellPhoneController.text.trim();
+    if (phone.isNotEmpty) {
+      final Uri url = Uri.parse('tel:$phone');
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Llamando a $phone...")),
+          );
+        }
       }
     }
   }
@@ -157,29 +215,45 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      "Publicado por: ${widget.announcement["nameUserCreated"] ?? "Usuario"}",
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: textColor.withOpacity(0.85),
-                      ),
+                    Row(
+                      children: [
+                        const Icon(Icons.person, size: 18, color: Colors.purple),
+                        const SizedBox(width: 6),
+                        Text(
+                          "Publicado por: ${widget.announcement["nameUserCreated"] ?? "Usuario"}",
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: textColor.withOpacity(0.85),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "Contacto actual: ${widget.announcement["cellPhone"] ?? "No disponible"}",
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: textColor.withOpacity(0.7),
-                      ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Icon(
+                          _canEdit ? Icons.edit : Icons.lock_outline,
+                          size: 16,
+                          color: _canEdit ? Colors.green : Colors.orange,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          _canEdit ? "Modo Edición Permitido" : "Modo Solo Lectura",
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: _canEdit ? Colors.green : Colors.orange,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 24),
 
-              // Input 1: Descripción
+              // Campo: Descripción
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
@@ -194,16 +268,23 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
               const SizedBox(height: 8),
               TextFormField(
                 controller: _descriptionController,
+                enabled: _canEdit,
                 maxLines: 2,
                 style: TextStyle(color: textColor),
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: fieldFillColor,
-                  suffixIcon: const Icon(Icons.edit, color: Colors.purple, size: 20),
+                  suffixIcon: _canEdit
+                      ? const Icon(Icons.edit, color: Colors.purple, size: 20)
+                      : const Icon(Icons.lock, color: Colors.grey, size: 20),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: Colors.purple.withOpacity(0.3)),
+                  ),
+                  disabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.withOpacity(0.3)),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -218,7 +299,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
               ),
               const SizedBox(height: 18),
 
-              // Input 2: Teléfono
+              // Campo: Teléfono
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
@@ -233,16 +314,23 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
               const SizedBox(height: 8),
               TextFormField(
                 controller: _cellPhoneController,
+                enabled: _canEdit,
                 keyboardType: TextInputType.phone,
                 style: TextStyle(color: textColor),
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: fieldFillColor,
-                  suffixIcon: const Icon(Icons.edit, color: Colors.purple, size: 20),
+                  suffixIcon: _canEdit
+                      ? const Icon(Icons.edit, color: Colors.purple, size: 20)
+                      : const Icon(Icons.lock, color: Colors.grey, size: 20),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: Colors.purple.withOpacity(0.3)),
+                  ),
+                  disabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.withOpacity(0.3)),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -257,32 +345,55 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
               ),
               const SizedBox(height: 32),
 
-              // Purple Button: Confirmar
-              SizedBox(
-                width: 220,
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _updateAnnouncement,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF7E57C2),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+              // Botón Acción: Confirmar (si puede editar) o Contactar por Teléfono (si solo lectura)
+              if (_canEdit)
+                SizedBox(
+                  width: 220,
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _updateAnnouncement,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF7E57C2),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 3,
                     ),
-                    elevation: 3,
+                    child: _isLoading
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                          )
+                        : const Text(
+                            "Confirmar",
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
                   ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
-                        )
-                      : const Text(
-                          "Confirmar",
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
+                )
+              else
+                SizedBox(
+                  width: 240,
+                  height: 48,
+                  child: ElevatedButton.icon(
+                    onPressed: _makeCall,
+                    icon: const Icon(Icons.phone, color: Colors.white),
+                    label: const Text(
+                      "Llamar al Anunciante",
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green[600],
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 3,
+                    ),
+                  ),
                 ),
-              ),
+
               const SizedBox(height: 24),
             ],
           ),
