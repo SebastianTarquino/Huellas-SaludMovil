@@ -1,5 +1,6 @@
 import 'announcements.dart';
 import 'announcement_detail.dart';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:huellas_salud_movil/services/announcement_services.dart';
 import '../../config/api_config.dart';
@@ -21,32 +22,76 @@ class _AnnouncementListPageState extends State<AnnouncementListPage> {
     _announcementsFuture = _announcementService.listAnnouncements();
   }
 
-  Widget _buildImage(String? announcementId) {
-    if (announcementId == null || announcementId.isEmpty) {
-      return Image.asset(
-        'assets/img/images/placeholder.png',
+  Widget _buildImage(Map<String, dynamic> ann) {
+    final String? announcementId = ann["idAnnouncement"]?.toString();
+    final mediaFile = ann["mediaFile"];
+
+    if (mediaFile != null && mediaFile is Map) {
+      final String? attach = mediaFile["attachment"]?.toString();
+      if (attach != null && attach.isNotEmpty) {
+        if (attach.startsWith('http://') || attach.startsWith('https://')) {
+          return Image.network(
+            attach,
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: 190,
+            errorBuilder: (context, error, stackTrace) => Image.asset(
+              'assets/img/images/placeholder.png',
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: 190,
+            ),
+          );
+        }
+        try {
+          String cleanBase64 = attach;
+          if (cleanBase64.contains(',')) {
+            cleanBase64 = cleanBase64.split(',').last;
+          }
+          final bytes = base64Decode(cleanBase64.trim());
+          return Image.memory(
+            bytes,
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: 190,
+            errorBuilder: (context, error, stackTrace) => Image.asset(
+              'assets/img/images/placeholder.png',
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: 190,
+            ),
+          );
+        } catch (e) {
+          print("Error al decodificar base64 de mediaFile: $e");
+        }
+      }
+    }
+
+    if (announcementId != null && announcementId.isNotEmpty) {
+      final imageUrl =
+          "${ApiConfig.internalBaseUrl}avatar-user/announcement/$announcementId?v=${DateTime.now().millisecondsSinceEpoch}";
+
+      return Image.network(
+        imageUrl,
         fit: BoxFit.cover,
         width: double.infinity,
         height: 190,
+        errorBuilder: (context, error, stackTrace) {
+          return Image.asset(
+            'assets/img/images/placeholder.png',
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: 190,
+          );
+        },
       );
     }
 
-    final imageUrl =
-        "${ApiConfig.internalBaseUrl}avatar-user/Announcement/$announcementId?v=$announcementId";
-
-    return Image.network(
-      imageUrl,
+    return Image.asset(
+      'assets/img/images/placeholder.png',
       fit: BoxFit.cover,
       width: double.infinity,
       height: 190,
-      errorBuilder: (context, error, stackTrace) {
-        return Image.asset(
-          'assets/img/images/placeholder.png',
-          fit: BoxFit.cover,
-          width: double.infinity,
-          height: 190,
-        );
-      },
     );
   }
 
@@ -60,6 +105,7 @@ class _AnnouncementListPageState extends State<AnnouncementListPage> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF12121A) : const Color(0xFFF5F3F9),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'announcement_list_add_fab',
         backgroundColor: const Color(0xFF7E57C2),
         onPressed: () async {
           final result = await Navigator.push(
@@ -130,7 +176,7 @@ class _AnnouncementListPageState extends State<AnnouncementListPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildImage(ann["idAnnouncement"]),
+                    _buildImage(ann),
                     Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Column(

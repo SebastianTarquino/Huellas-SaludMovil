@@ -21,15 +21,16 @@ class AnnouncementService {
     String? imageBase64,
   }) async {
     try {
+      final generatedId = "ann-${DateTime.now().millisecondsSinceEpoch}";
       final body = {
         "data": {
+          "idAnnouncement": generatedId,
           "description": description,
           "cellPhone": cellPhone,
           "status": true,
           "nameUserCreated": nameUserCreated ?? "Usuario",
           "emailUserCreated": emailUserCreated ?? "user@huellassalud.com",
           "roleUserCreated": roleUserCreated ?? "CLIENTE",
-          if (imageBase64 != null) "imageBase64": imageBase64,
         }
       };
 
@@ -44,9 +45,10 @@ class AnnouncementService {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = response.data["data"];
-        final String? announcementId = data?["idAnnouncement"];
+        final String announcementId =
+            (data?["idAnnouncement"] ?? generatedId).toString();
 
-        if (announcementId != null && imageBase64 == null) {
+        try {
           if (kIsWeb && imageBytes != null) {
             await uploadAnnouncementImageWeb(
               announcementId: announcementId,
@@ -58,6 +60,8 @@ class AnnouncementService {
               imageFile: imageFile,
             );
           }
+        } catch (imgError) {
+          print("Error al subir imagen tras la creación del anuncio: $imgError");
         }
 
         return announcementId;
@@ -143,16 +147,23 @@ class AnnouncementService {
         final List<dynamic> dataList = response.data;
 
         return dataList.map<Map<String, dynamic>>((item) {
-          final data = item["data"] ?? {};
-          final meta = item["meta"] ?? {};
+          if (item is Map) {
+            final data = (item["data"] is Map) ? item["data"] : item;
+            final meta = (item["meta"] is Map) ? item["meta"] : {};
 
-          return {
-            ...data,
-            "nameUserCreated": meta["nameUserCreated"] ?? data["nameUserCreated"],
-            "emailUserCreated": meta["emailUserCreated"] ?? data["emailUserCreated"],
-            "roleUserCreated": meta["roleUserCreated"] ?? data["roleUserCreated"],
-          };
-        }).toList();
+            return {
+              "idAnnouncement": (data["idAnnouncement"] ?? data["id"] ?? "").toString(),
+              "description": (data["description"] ?? "").toString(),
+              "cellPhone": (data["cellPhone"] ?? "").toString(),
+              "status": data["status"] == true,
+              "nameUserCreated": (meta["nameUserCreated"] ?? data["nameUserCreated"] ?? "Usuario").toString(),
+              "emailUserCreated": (meta["emailUserCreated"] ?? data["emailUserCreated"] ?? "").toString(),
+              "roleUserCreated": (meta["roleUserCreated"] ?? data["roleUserCreated"] ?? "CLIENTE").toString(),
+              "mediaFile": data["mediaFile"],
+            };
+          }
+          return {};
+        }).where((map) => map.isNotEmpty).toList();
       }
 
       print("Respuesta inesperada: ${response.statusCode}");
@@ -176,7 +187,6 @@ class AnnouncementService {
         data: {
           "description": description,
           "cellPhone": cellPhone,
-          if (imageBase64 != null) "imageBase64": imageBase64,
         },
       );
 

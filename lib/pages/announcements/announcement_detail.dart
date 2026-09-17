@@ -258,23 +258,80 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
         height: 240,
       );
     } else {
-      final imageUrl =
-          "${ApiConfig.internalBaseUrl}avatar-user/Announcement/$announcementId?v=$announcementId";
+      final mediaFile = widget.announcement["mediaFile"];
+      String? attach;
+      if (mediaFile != null && mediaFile is Map) {
+        attach = mediaFile["attachment"]?.toString();
+      }
 
-      imageWidget = Image.network(
-        imageUrl,
-        fit: BoxFit.cover,
-        width: double.infinity,
-        height: 240,
-        errorBuilder: (context, error, stackTrace) {
-          return Image.asset(
-            'assets/img/images/placeholder.png',
+      if (attach != null && attach.isNotEmpty) {
+        if (attach.startsWith('http://') || attach.startsWith('https://')) {
+          imageWidget = Image.network(
+            attach,
             fit: BoxFit.cover,
             width: double.infinity,
             height: 240,
+            errorBuilder: (context, error, stackTrace) => Image.asset(
+              'assets/img/images/placeholder.png',
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: 240,
+            ),
           );
-        },
-      );
+        } else {
+          try {
+            String cleanBase64 = attach;
+            if (cleanBase64.contains(',')) {
+              cleanBase64 = cleanBase64.split(',').last;
+            }
+            final bytes = base64Decode(cleanBase64.trim());
+            imageWidget = Image.memory(
+              bytes,
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: 240,
+              errorBuilder: (context, error, stackTrace) => Image.asset(
+                'assets/img/images/placeholder.png',
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: 240,
+              ),
+            );
+          } catch (e) {
+            imageWidget = Image.asset(
+              'assets/img/images/placeholder.png',
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: 240,
+            );
+          }
+        }
+      } else if (announcementId != null && announcementId.isNotEmpty) {
+        final imageUrl =
+            "${ApiConfig.internalBaseUrl}avatar-user/announcement/$announcementId?v=${DateTime.now().millisecondsSinceEpoch}";
+
+        imageWidget = Image.network(
+          imageUrl,
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: 240,
+          errorBuilder: (context, error, stackTrace) {
+            return Image.asset(
+              'assets/img/images/placeholder.png',
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: 240,
+            );
+          },
+        );
+      } else {
+        imageWidget = Image.asset(
+          'assets/img/images/placeholder.png',
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: 240,
+        );
+      }
     }
 
     final clippedWidget = ClipRRect(

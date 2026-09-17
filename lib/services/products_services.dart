@@ -1,8 +1,12 @@
+import 'dart:convert';
 import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_config.dart';
 import '../models/products.dart';
 
 class ProductService {
+  static const String _customProductsKey = 'user_custom_products_list';
+
   final Dio _dio = Dio(
     BaseOptions(
       baseUrl: ApiConfig.internalBaseUrl,
@@ -10,6 +14,36 @@ class ProductService {
       receiveTimeout: const Duration(seconds: 10),
     ),
   );
+
+  Future<List<Product>> getCustomProducts() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final str = prefs.getString(_customProductsKey);
+      if (str != null && str.isNotEmpty) {
+        final List<dynamic> jsonList = jsonDecode(str);
+        return jsonList
+            .map((item) => Product.fromJson(Map<String, dynamic>.from(item)))
+            .toList();
+      }
+    } catch (e) {
+      print("Error al cargar productos personalizados: $e");
+    }
+    return [];
+  }
+
+  Future<void> saveCustomProduct(Product product) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final currentList = await getCustomProducts();
+      currentList.removeWhere((p) => p.idProduct == product.idProduct);
+      currentList.insert(0, product);
+
+      final jsonString = jsonEncode(currentList.map((p) => p.toJson()).toList());
+      await prefs.setString(_customProductsKey, jsonString);
+    } catch (e) {
+      print("Error al guardar producto personalizado: $e");
+    }
+  }
 
   Future<List<Product>> fetchProducts({int limit = 20, int offset = 0}) async {
     try {
@@ -39,30 +73,26 @@ class ProductService {
             idProduct: data['idProduct']
                 .toString(), // convertimos a String por seguridad
             name: data['name'] ?? 'Sin nombre',
-            category: data['category'],
-            animalType: data['animalType'],
-            description: data['description'],
-            price: data['price'],
+            category: data['category'] ?? '',
+            animalType: data['animalType'] ?? '',
+            description: data['description'] ?? '',
+            price: (data['price'] is num) ? (data['price'] as num).toDouble() : 0.0,
             mediaFile: mediaFile,
           );
         }).toList();
 
         return products;
       } else {
-        throw Exception('Failed to load products');
+        return [];
       }
-    } on DioException catch (e) {
-      if (e.response != null) {
-        throw Exception('Error: ${e.response!.statusCode}');
-      } else {
-        throw Exception('Network error: ${e.message}');
-      }
+    } catch (e) {
+      return [];
     }
   }
 
   Future<Product> fetchProductById(int id) async {
     try {
-      final response = await _dio.get('products/$id'); // 👈 Ajusta el endpoint
+      final response = await _dio.get('products/$id');
 
       if (response.statusCode == 200) {
         return Product.fromJson(response.data);
@@ -77,4 +107,20 @@ class ProductService {
       }
     }
   }
+
+  Future<bool> createProduct(Map<String, dynamic> productData) async {
+    try {
+      final response = await _dio.post(
+        'product/create-product',
+        data: productData,
+        options: Options(validateStatus: (status) => true),
+      );
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      return false;
+    }
+  }
 }
+
+
+

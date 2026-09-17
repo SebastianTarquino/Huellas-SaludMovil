@@ -22,7 +22,6 @@ class ProductList extends StatelessWidget {
   Widget build(BuildContext context) {
     return NotificationListener<ScrollNotification>(
       onNotification: (ScrollNotification scrollInfo) {
-        // Detecta cuando se llega al final del scroll y carga más
         if (onLoadMore != null &&
             !isLoading &&
             scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
@@ -30,34 +29,28 @@ class ProductList extends StatelessWidget {
         }
         return false;
       },
-      child: Column(
-        children: [
-          Expanded(
-            child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2, // dos columnas
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-                childAspectRatio: 0.75, // ajusta la proporción según ProductCard
-              ),
-              padding: const EdgeInsets.all(8),
-              itemCount: products.length + (isLoading && hasMore ? 1 : 0),
-              itemBuilder: (context, index) {
-                // Muestra indicador de carga si estamos cargando más
-                if (index == products.length) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+      child: GridView.builder(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2, // dos columnas
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 0.68, // Proporción perfecta para la tarjeta estilo mockup
+        ),
+        padding: const EdgeInsets.only(bottom: 16),
+        itemCount: products.length + (isLoading && hasMore ? 1 : 0),
+        itemBuilder: (context, index) {
+          if (index == products.length) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-                final product = products[index];
-                return ProductCard(
-                  product: product,
-                  onTap: () => onProductTap(product),
-                );
-              },
-            ),
-          ),
-        ],
+          final product = products[index];
+          return ProductCard(
+            product: product,
+            onTap: () => onProductTap(product),
+          );
+        },
       ),
     );
   }
 }
+

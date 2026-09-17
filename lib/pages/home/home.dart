@@ -44,7 +44,16 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       const AnnouncementListPage(),
       const ProductHomePage(),
-      UserScreen(username: widget.username, password: widget.password),
+      UserScreen(
+        username: widget.username,
+        password: widget.password,
+        onGoToHome: () {
+          setState(() {
+            _currentIndex = 0;
+          });
+          _pageController.jumpToPage(0);
+        },
+      ),
     ];
   }
 
@@ -68,6 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
       // 🔹 Solo mostrar el botón flotante en la pestaña de “Anuncios”
       floatingActionButton: _currentIndex == 1
           ? FloatingActionButton(
+              heroTag: 'home_announcement_add_fab',
               backgroundColor: Colors.purple,
               child: const Icon(Icons.add, color: Colors.white),
               onPressed: () {
@@ -149,6 +159,61 @@ class _HomeContentState extends State<HomeContent> {
   List<Product> _products = [];
   bool _isLoading = true;
 
+  final List<Product> _defaultMockProducts = [
+    Product(
+      idProduct: 'mock-1',
+      name: 'Purina Alpo 2Kg',
+      category: 'Alimento',
+      animalType: 'Perro',
+      description: 'Alimento completo para perros adultos de todas las razas.',
+      price: 15000,
+      mediaFile: MediaFile(
+        fileName: 'alpo.png',
+        contentType: 'image/png',
+        attachment: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=400',
+      ),
+    ),
+    Product(
+      idProduct: 'mock-2',
+      name: 'Agility Gold Pequeños Adultos',
+      category: 'Alimento',
+      animalType: 'Perro',
+      description: 'Nutrición de alta calidad para perros de razas pequeñas.',
+      price: 42000,
+      mediaFile: MediaFile(
+        fileName: 'agility.png',
+        contentType: 'image/png',
+        attachment: 'https://images.unsplash.com/photo-1568640347023-a616a30bc3bd?w=400',
+      ),
+    ),
+    Product(
+      idProduct: 'mock-5',
+      name: 'Juguete Kong Classic Medium',
+      category: 'Juguetes',
+      animalType: 'Perro',
+      description: 'Juguete de caucho súper duradero para rellenar con snacks.',
+      price: 45000,
+      mediaFile: MediaFile(
+        fileName: 'kong.png',
+        contentType: 'image/png',
+        attachment: 'https://images.unsplash.com/photo-1535294435445-d7249524ef2e?w=400',
+      ),
+    ),
+    Product(
+      idProduct: 'mock-8',
+      name: 'Bravecto Antipulgas Canino',
+      category: 'Medicinas',
+      animalType: 'Perro',
+      description: 'Comprimido masticable contra pulgas y garrapatas por 12 semanas.',
+      price: 120000,
+      mediaFile: MediaFile(
+        fileName: 'bravecto.png',
+        contentType: 'image/png',
+        attachment: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400',
+      ),
+    ),
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -157,19 +222,37 @@ class _HomeContentState extends State<HomeContent> {
 
   Future<void> _loadProducts() async {
     try {
+      final customProducts = await _productService.getCustomProducts();
       final newProducts = await _productService.fetchProducts(
         limit: 20,
         offset: 0,
       );
+
+      final combined = <Product>[];
+      combined.addAll(customProducts);
+      if (newProducts.isNotEmpty) {
+        combined.addAll(newProducts);
+      } else {
+        combined.addAll(_defaultMockProducts);
+      }
+
       setState(() {
-        newProducts.shuffle();
-        _products = newProducts.take(4).toList();
+        final existingIds = <String>{};
+        final filteredList = <Product>[];
+        for (var p in combined) {
+          if (!existingIds.contains(p.idProduct)) {
+            existingIds.add(p.idProduct);
+            filteredList.add(p);
+          }
+        }
+        _products = filteredList.take(6).toList();
         _isLoading = false;
       });
     } catch (e) {
-      setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Error al cargar productos: $e')));
+      setState(() {
+        _products = List.from(_defaultMockProducts);
+        _isLoading = false;
+      });
     }
   }
 
@@ -182,98 +265,103 @@ class _HomeContentState extends State<HomeContent> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(20.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Banner principal
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                image: const DecorationImage(
-                  image: AssetImage('assets/img/images/banner.png'),
-                  fit: BoxFit.fitWidth,
-                ),
-              ),
-              width: double.infinity,
-              height: 220,
-            ),
-          ),
-          const SizedBox(height: 15),
-
-          // Categorías
-          const Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Text(
-              "Categorías",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-          ),
-          const SizedBox(height: 15),
-          SizedBox(
-            height: 105,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: const [
-                _CategoryItem("assets/img/images/comida.png", "Comida"),
-                _CategoryItem("assets/img/images/accesorios.png", "Accesorios"),
-                _CategoryItem("assets/img/images/limpieza.png", "Limpieza"),
-                _CategoryItem("assets/img/images/salud.png", "Salud"),
-              ],
-            ),
-          ),
-          const SizedBox(height: 15),
-
-          // Productos
-          InkWell(
-            onTap: widget.onGoToProducts,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  "Productos",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.purple,
-                    borderRadius: BorderRadius.circular(12),
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Banner principal
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  image: const DecorationImage(
+                    image: AssetImage('assets/img/images/banner.png'),
+                    fit: BoxFit.fitWidth,
                   ),
-                  padding: const EdgeInsets.all(4),
-                  child: const Icon(Icons.arrow_forward, size: 16, color: Colors.white),
                 ),
-              ],
+                width: double.infinity,
+                height: 220,
+              ),
             ),
-          ),
-          const SizedBox(height: 10),
+            const SizedBox(height: 15),
 
-          // Lista de productos
-          _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : _products.isEmpty
-                  ? const Text("No hay productos disponibles.")
-                  : SizedBox(
-                      height: 220,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: _products.length,
-                        itemBuilder: (context, index) {
-                          final product = _products[index];
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                            child: ProductCard(
-                              product: product,
-                              onTap: () => _onProductTap(product),
-                            ),
-                          );
-                        },
-                      ),
+            // Categorías
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text(
+                "Categorías",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+            const SizedBox(height: 15),
+            SizedBox(
+              height: 105,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: const [
+                  _CategoryItem("assets/img/images/comida.png", "Comida"),
+                  _CategoryItem("assets/img/images/accesorios.png", "Accesorios"),
+                  _CategoryItem("assets/img/images/limpieza.png", "Limpieza"),
+                  _CategoryItem("assets/img/images/salud.png", "Salud"),
+                ],
+              ),
+            ),
+            const SizedBox(height: 15),
+
+            // Productos
+            InkWell(
+              onTap: widget.onGoToProducts,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    "Productos",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.purple,
+                      borderRadius: BorderRadius.circular(12),
                     ),
-        ],
+                    padding: const EdgeInsets.all(4),
+                    child: const Icon(Icons.arrow_forward, size: 16, color: Colors.white),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+
+            // Lista de productos
+            _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _products.isEmpty
+                    ? const Text("No hay productos disponibles.")
+                    : SizedBox(
+                        height: 235,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: _products.length,
+                          itemBuilder: (context, index) {
+                            final product = _products[index];
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 12.0),
+                              child: SizedBox(
+                                width: 165,
+                                child: ProductCard(
+                                  product: product,
+                                  onTap: () => _onProductTap(product),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+          ],
+        ),
       ),
     );
   }
