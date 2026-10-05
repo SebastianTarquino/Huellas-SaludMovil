@@ -278,4 +278,21 @@ class UserService {
       return false;
     }
   }
+
+  // ✏️ Actualizar datos del usuario (email, password, etc.) en el servidor PostgreSQL
+  Future<bool> updateUserData(String userKey, Map<String, dynamic> data) async {
+    try {
+      if (userKey.trim().isEmpty) return false;
+      final encodedKey = Uri.encodeComponent(userKey.trim());
+      final response = await _dio.put(
+        'user/$encodedKey',
+        data: {'data': data},
+        options: Options(validateStatus: (status) => true),
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      print("Error al actualizar usuario en backend: $e");
+      return false;
+    }
+  }
 }
