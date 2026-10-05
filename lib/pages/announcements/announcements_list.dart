@@ -24,7 +24,32 @@ class _AnnouncementListPageState extends State<AnnouncementListPage> {
 
   Widget _buildImage(Map<String, dynamic> ann) {
     final String? announcementId = ann["idAnnouncement"]?.toString();
+    final imageDataUrl = ann["imageDataUrl"];
     final mediaFile = ann["mediaFile"];
+
+    if (imageDataUrl != null && imageDataUrl is String && imageDataUrl.isNotEmpty) {
+      try {
+        String cleanBase64 = imageDataUrl;
+        if (cleanBase64.contains(',')) {
+          cleanBase64 = cleanBase64.split(',').last;
+        }
+        final bytes = base64Decode(cleanBase64.trim());
+        return Image.memory(
+          bytes,
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: 190,
+          errorBuilder: (context, error, stackTrace) => Image.asset(
+            'assets/img/images/placeholder.png',
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: 190,
+          ),
+        );
+      } catch (e) {
+        print("Error al decodificar base64 de imageDataUrl: $e");
+      }
+    }
 
     if (mediaFile != null && mediaFile is Map) {
       final String? attach = mediaFile["attachment"]?.toString();
