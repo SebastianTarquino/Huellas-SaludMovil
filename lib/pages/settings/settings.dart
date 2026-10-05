@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../config/app_state.dart';
 import '../../services/users_services.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -465,7 +466,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       trailing: isSelected ? const Icon(Icons.check_circle, color: Color(0xFF7E57C2)) : null,
       onTap: () async {
         setState(() => _selectedTheme = themeName);
-        await _savePreference('pref_theme_mode', themeName);
+        await AppStateNotifier.updateTheme(themeName);
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -502,7 +503,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 trailing: _selectedLanguage == "Español" ? const Icon(Icons.check_circle, color: Color(0xFF7E57C2)) : null,
                 onTap: () async {
                   setState(() => _selectedLanguage = "Español");
-                  await _savePreference('pref_language', "Español");
+                  await AppStateNotifier.updateLanguage("Español");
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text("Idioma configurado en Español 🇪🇸")),
@@ -515,7 +516,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 trailing: _selectedLanguage == "English" ? const Icon(Icons.check_circle, color: Color(0xFF7E57C2)) : null,
                 onTap: () async {
                   setState(() => _selectedLanguage = "English");
-                  await _savePreference('pref_language', "English");
+                  await AppStateNotifier.updateLanguage("English");
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text("Language set to English 🇺🇸")),
