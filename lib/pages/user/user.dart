@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../services/users_services.dart';
 import '../auth/login.dart';
 import '../invoices/history_invoice.dart';
 import '../pets/pets.dart';
@@ -83,6 +84,7 @@ class _UserScreenState extends State<UserScreen> {
         final email = (userData['email'] ?? '').toString().trim();
         final role = (userData['role'] ?? 'CLIENTE').toString().trim();
         final doc = (userData['documentNumber'] ?? '').toString().trim();
+        final serverAvatar = userData['avatarBase64'] ?? userData['avatar_base64'];
 
         setState(() {
           if (name.isNotEmpty || lastName.isNotEmpty) {
@@ -93,6 +95,9 @@ class _UserScreenState extends State<UserScreen> {
           _email = email.isNotEmpty ? email : "${widget.username}@demo.com";
           _role = role;
           _documentNumber = doc;
+          if (serverAvatar != null && serverAvatar.toString().isNotEmpty) {
+            _savedAvatarBase64 = serverAvatar.toString();
+          }
         });
       } else if (widget.username.isNotEmpty) {
         setState(() {
@@ -108,12 +113,19 @@ class _UserScreenState extends State<UserScreen> {
         setState(() {
           _savedAvatarBase64 = savedAvatar;
         });
-      } else {
-        setState(() {
-          _savedAvatarBase64 = null;
-          _webAvatarBytes = null;
-          _selectedAvatarFile = null;
-        });
+      }
+
+      // Intentar sincronizar avatar desde el servidor backend en PostgreSQL
+      if (userKey.isNotEmpty) {
+        try {
+          final serverUser = await UserService().fetchUserById(int.tryParse(_documentNumber) ?? 0);
+          if (serverUser.avatarBase64 != null && serverUser.avatarBase64!.isNotEmpty) {
+            setState(() {
+              _savedAvatarBase64 = serverUser.avatarBase64;
+            });
+            await prefs.setString('user_profile_avatar_$userKey', serverUser.avatarBase64!);
+          }
+        } catch (_) {}
       }
     } catch (e) {
       print("Error al cargar datos del usuario: $e");
@@ -171,6 +183,9 @@ class _UserScreenState extends State<UserScreen> {
         final userKey = _getUserStorageKey();
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('user_profile_avatar_$userKey', base64Str);
+
+        // Guardar foto en el servidor PostgreSQL para que se vea en todos los dispositivos (PC, Tablet, Web)
+        await UserService().updateUserAvatar(userKey, base64Str);
 
         if (kIsWeb) {
           setState(() {

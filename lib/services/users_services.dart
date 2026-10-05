@@ -234,4 +234,27 @@ class UserService {
       return true;
     }
   }
+
+  // 🖼️ Actualizar foto de perfil de usuario en el servidor + local
+  Future<bool> updateUserAvatar(String userKey, String avatarBase64) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (userKey.isNotEmpty) {
+        await prefs.setString('user_profile_avatar_$userKey', avatarBase64);
+      }
+
+      // Enviar al servidor backend en PostgreSQL
+      await _dio.put(
+        'user/$userKey/avatar',
+        data: {
+          'avatarBase64': avatarBase64,
+        },
+        options: Options(validateStatus: (status) => true),
+      );
+      return true;
+    } catch (e) {
+      print("Error al actualizar avatar en el servidor: $e");
+      return false;
+    }
+  }
 }
