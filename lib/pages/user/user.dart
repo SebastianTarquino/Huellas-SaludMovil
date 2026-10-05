@@ -106,29 +106,28 @@ class _UserScreenState extends State<UserScreen> {
         });
       }
 
-      // Cargar foto de perfil guardada única para este usuario
       final userKey = _getUserStorageKey();
-      final savedAvatar = prefs.getString('user_profile_avatar_$userKey');
-      if (savedAvatar != null && savedAvatar.isNotEmpty) {
-        setState(() {
-          _savedAvatarBase64 = savedAvatar;
-        });
-      }
 
-      // Intentar sincronizar avatar desde el servidor backend en PostgreSQL
-      final searchKey = _documentNumber.isNotEmpty ? _documentNumber : _email;
-      if (searchKey.isNotEmpty) {
+      // CONSULTAR SERVIDOR POSTGRESQL (Prioridad Máxima) para traer la foto más reciente
+      final searchKeys = [
+        _documentNumber.trim(),
+        _email.trim(),
+        _displayName.trim(),
+        widget.username.trim(),
+      ].where((k) => k.isNotEmpty).toList();
+
+      for (var key in searchKeys) {
         try {
-          final serverUser = await UserService().fetchUserByKey(searchKey);
+          final serverUser = await UserService().fetchUserByKey(key);
           if (serverUser != null && serverUser.avatarBase64 != null && serverUser.avatarBase64!.isNotEmpty) {
             setState(() {
               _savedAvatarBase64 = serverUser.avatarBase64;
             });
             await prefs.setString('user_profile_avatar_$userKey', serverUser.avatarBase64!);
 
-            final userStr = prefs.getString('auth_user');
-            if (userStr != null) {
-              final parsed = jsonDecode(userStr);
+            final currentAuth = prefs.getString('auth_user');
+            if (currentAuth != null) {
+              final parsed = jsonDecode(currentAuth);
               if (parsed is Map) {
                 if (parsed['data'] is Map) {
                   parsed['data']['avatarBase64'] = serverUser.avatarBase64;
@@ -138,9 +137,20 @@ class _UserScreenState extends State<UserScreen> {
                 await prefs.setString('auth_user', jsonEncode(parsed));
               }
             }
+            break;
           }
         } catch (e) {
-          print("Error al sincronizar avatar del servidor: $e");
+          print("Error al sincronizar avatar con la clave $key: $e");
+        }
+      }
+
+      // Fallback a SharedPreferences local si el servidor no tiene avatar aún
+      if (_savedAvatarBase64 == null || _savedAvatarBase64!.isEmpty) {
+        final savedAvatar = prefs.getString('user_profile_avatar_$userKey');
+        if (savedAvatar != null && savedAvatar.isNotEmpty) {
+          setState(() {
+            _savedAvatarBase64 = savedAvatar;
+          });
         }
       }
     } catch (e) {
