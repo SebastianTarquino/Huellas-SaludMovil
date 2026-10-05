@@ -133,7 +133,7 @@ class _AnnouncementListPageState extends State<AnnouncementListPage> {
             return const Center(child: Text('No hay anuncios disponibles.'));
           }
 
-          final announcements = snapshot.data!;
+          final announcements = snapshot.data!.reversed.toList();
 
           return ListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -224,7 +224,13 @@ class _AnnouncementListPageState extends State<AnnouncementListPage> {
                               const Icon(Icons.person_outline, size: 16, color: Color(0xFF9575CD)),
                               const SizedBox(width: 4),
                               Text(
-                                "Publicado por: ${ann["nameUserCreated"] ?? "Desconocido"}",
+                                "Publicado por: ${() {
+                                  final name = (ann["nameUserCreated"] ?? '').toString().trim();
+                                  if (name.isNotEmpty && name != 'Usuario') return name;
+                                  final email = (ann["emailUserCreated"] ?? '').toString().trim();
+                                  if (email.isNotEmpty && email != 'user@huellassalud.com') return email;
+                                  return 'Usuario';
+                                }()}",
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: subtitleTextColor,

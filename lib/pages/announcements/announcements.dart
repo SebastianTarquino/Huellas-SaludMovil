@@ -7,7 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../models/users.dart';
 import '../../services/announcement_services.dart';
+import '../../services/users_services.dart';
 
 class AnnouncementPage extends StatefulWidget {
   const AnnouncementPage({Key? key}) : super(key: key);
@@ -108,20 +110,52 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
       if (userStr != null) {
         try {
           final parsed = jsonDecode(userStr);
-          final userData = (parsed['data'] is Map) ? parsed['data'] : parsed;
-          final name = userData['name'] ?? '';
-          final lastName = userData['lastName'] ?? '';
+          dynamic userData = (parsed['data'] is Map) ? parsed['data'] : parsed;
+          if (userData['data'] is Map) {
+            userData = userData['data'];
+          }
+          final name = userData['name'] ?? userData['first_name'] ?? parsed['name'] ?? '';
+          final lastName = userData['lastName'] ?? userData['last_name'] ?? parsed['lastName'] ?? '';
           if (name.toString().isNotEmpty) {
             nameUserCreated = "$name $lastName".trim();
           }
-          if (userData['email'] != null) {
-            emailUserCreated = userData['email'].toString();
+          final email = userData['email'] ?? parsed['email'];
+          if (email != null && email.toString().isNotEmpty) {
+            emailUserCreated = email.toString();
           }
-          if (userData['role'] != null) {
-            roleUserCreated = userData['role'].toString();
+          final role = userData['role'] ?? parsed['role'];
+          if (role != null && role.toString().isNotEmpty) {
+            roleUserCreated = role.toString();
           }
         } catch (e) {
           print("Error al leer auth_user: $e");
+        }
+      }
+
+      if (nameUserCreated == "Usuario") {
+        try {
+          final customUsers = await UserService().getCustomUsers();
+          if (customUsers.isNotEmpty) {
+            final u = customUsers.first;
+            nameUserCreated = "${u.name} ${u.lastName}".trim();
+            if (nameUserCreated.isEmpty) nameUserCreated = u.name;
+            if ((u.email ?? '').isNotEmpty) emailUserCreated = u.email!;
+            if ((u.role ?? '').isNotEmpty) roleUserCreated = u.role!;
+          } else {
+            final allUsers = await UserService().fetchUsers();
+            if (allUsers.isNotEmpty) {
+              final u = allUsers.firstWhere(
+                (user) => (user.email ?? '').toLowerCase() == emailUserCreated.toLowerCase(),
+                orElse: () => allUsers.last,
+              );
+              nameUserCreated = "${u.name} ${u.lastName}".trim();
+              if (nameUserCreated.isEmpty) nameUserCreated = u.name;
+              if ((u.email ?? '').isNotEmpty) emailUserCreated = u.email!;
+              if ((u.role ?? '').isNotEmpty) roleUserCreated = u.role!;
+            }
+          }
+        } catch (e) {
+          print("Error al buscar usuario activo para anuncio: $e");
         }
       }
 

@@ -151,14 +151,32 @@ class AnnouncementService {
             final data = (item["data"] is Map) ? item["data"] : item;
             final meta = (item["meta"] is Map) ? item["meta"] : {};
 
+            String name = (meta["nameUserCreated"] ?? "").toString().trim();
+            if (name.isEmpty || name == "Usuario") {
+              name = (data["nameUserCreated"] ?? "").toString().trim();
+            }
+            if (name.isEmpty) {
+              name = "Usuario";
+            }
+
+            String email = (meta["emailUserCreated"] ?? "").toString().trim();
+            if (email.isEmpty) {
+              email = (data["emailUserCreated"] ?? "").toString().trim();
+            }
+
+            String role = (meta["roleUserCreated"] ?? "").toString().trim();
+            if (role.isEmpty) {
+              role = (data["roleUserCreated"] ?? "").toString().trim();
+            }
+
             return {
               "idAnnouncement": (data["idAnnouncement"] ?? data["id"] ?? "").toString(),
               "description": (data["description"] ?? "").toString(),
               "cellPhone": (data["cellPhone"] ?? "").toString(),
               "status": data["status"] == true,
-              "nameUserCreated": (meta["nameUserCreated"] ?? data["nameUserCreated"] ?? "Usuario").toString(),
-              "emailUserCreated": (meta["emailUserCreated"] ?? data["emailUserCreated"] ?? "").toString(),
-              "roleUserCreated": (meta["roleUserCreated"] ?? data["roleUserCreated"] ?? "CLIENTE").toString(),
+              "nameUserCreated": name,
+              "emailUserCreated": email,
+              "roleUserCreated": role,
               "mediaFile": data["mediaFile"],
             };
           }

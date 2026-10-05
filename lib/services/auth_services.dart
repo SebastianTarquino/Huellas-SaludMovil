@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 // ...existing code...
 
+import 'users_services.dart';
+
 class AuthService {
   final String baseUrl;
   AuthService({required this.baseUrl});
@@ -97,6 +99,29 @@ class AuthService {
       }
     }
 
+    if (matchedUser == null) {
+      try {
+        final fetched = await UserService().fetchUsers();
+        for (var u in fetched) {
+          final doc = u.documentNumber.trim().toLowerCase();
+          final email = (u.email ?? '').trim().toLowerCase();
+          if ((doc.isNotEmpty && doc == query) || (email.isNotEmpty && email == query)) {
+            matchedUser = {
+              'name': u.name,
+              'lastName': u.lastName,
+              'role': u.role,
+              'documentNumber': u.documentNumber,
+              'email': u.email,
+              'phone': u.phone,
+              'address': u.address,
+              'isActive': u.isActive,
+            };
+            break;
+          }
+        }
+      } catch (_) {}
+    }
+
     // 2. Verificar estado de inactivación o eliminación
     if (matchedUser != null) {
       final docNum = (matchedUser['documentNumber'] ?? '').toString();
@@ -187,7 +212,19 @@ class AuthService {
         token = (body['data'] as Map)['access_token'];
       }
 
-      if (token == null) token = 'demo_token';
+      if (body['data'] == null || (body['data'] is Map && (body['data'] as Map)['name'] == null)) {
+        if (matchedUser != null) {
+          body['data'] = matchedUser;
+        } else {
+          body['data'] = {
+            'documentNumber': username,
+            'email': username.contains('@') ? username : '',
+            'name': username,
+            'lastName': '',
+            'role': 'CLIENTE',
+          };
+        }
+      }
 
       await prefs.setString('auth_token', token.toString());
       await prefs.setString('auth_user', jsonEncode(body));

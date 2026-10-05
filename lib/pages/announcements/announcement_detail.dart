@@ -432,7 +432,13 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            "Publicado por: ${widget.announcement['nameUserCreated'] ?? 'Usuario'}",
+                            "Publicado por: ${() {
+                              final name = (widget.announcement['nameUserCreated'] ?? '').toString().trim();
+                              if (name.isNotEmpty && name != 'Usuario') return name;
+                              final email = (widget.announcement['emailUserCreated'] ?? '').toString().trim();
+                              if (email.isNotEmpty && email != 'user@huellassalud.com') return email;
+                              return 'Usuario';
+                            }()}",
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
