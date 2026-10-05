@@ -152,6 +152,25 @@ class UserService {
     }
   }
 
+  Future<User?> fetchUserByKey(String userKey) async {
+    try {
+      if (userKey.trim().isEmpty) return null;
+      final encodedKey = Uri.encodeComponent(userKey.trim());
+      final response = await _dio.get(
+        'user/$encodedKey',
+        options: Options(validateStatus: (status) => true),
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        return User.fromJson(Map<String, dynamic>.from(response.data));
+      }
+      return null;
+    } catch (e) {
+      print("Error al obtener usuario por key: $e");
+      return null;
+    }
+  }
+
   Future<User> fetchUserById(int id) async {
     try {
       final response = await _dio.get('user/$id');
@@ -243,15 +262,17 @@ class UserService {
         await prefs.setString('user_profile_avatar_$userKey', avatarBase64);
       }
 
-      // Enviar al servidor backend en PostgreSQL
-      await _dio.put(
-        'user/$userKey/avatar',
+      final encodedKey = Uri.encodeComponent(userKey.trim());
+      final response = await _dio.put(
+        'user/$encodedKey/avatar',
         data: {
           'avatarBase64': avatarBase64,
         },
         options: Options(validateStatus: (status) => true),
       );
-      return true;
+
+      print("Respuesta de updateUserAvatar backend: ${response.statusCode}");
+      return response.statusCode == 200;
     } catch (e) {
       print("Error al actualizar avatar en el servidor: $e");
       return false;

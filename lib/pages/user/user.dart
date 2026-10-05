@@ -116,16 +116,32 @@ class _UserScreenState extends State<UserScreen> {
       }
 
       // Intentar sincronizar avatar desde el servidor backend en PostgreSQL
-      if (userKey.isNotEmpty) {
+      final searchKey = _documentNumber.isNotEmpty ? _documentNumber : _email;
+      if (searchKey.isNotEmpty) {
         try {
-          final serverUser = await UserService().fetchUserById(int.tryParse(_documentNumber) ?? 0);
-          if (serverUser.avatarBase64 != null && serverUser.avatarBase64!.isNotEmpty) {
+          final serverUser = await UserService().fetchUserByKey(searchKey);
+          if (serverUser != null && serverUser.avatarBase64 != null && serverUser.avatarBase64!.isNotEmpty) {
             setState(() {
               _savedAvatarBase64 = serverUser.avatarBase64;
             });
             await prefs.setString('user_profile_avatar_$userKey', serverUser.avatarBase64!);
+
+            final userStr = prefs.getString('auth_user');
+            if (userStr != null) {
+              final parsed = jsonDecode(userStr);
+              if (parsed is Map) {
+                if (parsed['data'] is Map) {
+                  parsed['data']['avatarBase64'] = serverUser.avatarBase64;
+                } else {
+                  parsed['avatarBase64'] = serverUser.avatarBase64;
+                }
+                await prefs.setString('auth_user', jsonEncode(parsed));
+              }
+            }
           }
-        } catch (_) {}
+        } catch (e) {
+          print("Error al sincronizar avatar del servidor: $e");
+        }
       }
     } catch (e) {
       print("Error al cargar datos del usuario: $e");
@@ -184,8 +200,27 @@ class _UserScreenState extends State<UserScreen> {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('user_profile_avatar_$userKey', base64Str);
 
-        // Guardar foto en el servidor PostgreSQL para que se vea en todos los dispositivos (PC, Tablet, Web)
-        await UserService().updateUserAvatar(userKey, base64Str);
+        // Actualizar avatar en la sesión local auth_user
+        final userStr = prefs.getString('auth_user');
+        if (userStr != null) {
+          try {
+            final parsed = jsonDecode(userStr);
+            if (parsed is Map) {
+              if (parsed['data'] is Map) {
+                parsed['data']['avatarBase64'] = base64Str;
+              } else {
+                parsed['avatarBase64'] = base64Str;
+              }
+              await prefs.setString('auth_user', jsonEncode(parsed));
+            }
+          } catch (_) {}
+        }
+
+        // Guardar foto en el servidor PostgreSQL (para que la PC y otros dispositivos la vean)
+        final updateSuccess = await UserService().updateUserAvatar(userKey, base64Str);
+        if (!updateSuccess && _documentNumber.isNotEmpty && _documentNumber != userKey) {
+          await UserService().updateUserAvatar(_documentNumber, base64Str);
+        }
 
         if (kIsWeb) {
           setState(() {
