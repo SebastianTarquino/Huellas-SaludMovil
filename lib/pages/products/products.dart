@@ -580,7 +580,7 @@ class _ProductHomePageState extends State<ProductHomePage> {
                     DropdownButtonFormField<String>(
                       value: selectedCategory,
                       decoration: const InputDecoration(
-                        labelText: 'CategorÃ­a',
+                        labelText: 'Categoría',
                         prefixIcon: Icon(Icons.category_outlined),
                         border: OutlineInputBorder(),
                       ),
@@ -615,7 +615,7 @@ class _ProductHomePageState extends State<ProductHomePage> {
                       controller: descriptionController,
                       maxLines: 2,
                       decoration: const InputDecoration(
-                        labelText: 'DescripciÃ³n',
+                        labelText: 'Descripción',
                         prefixIcon: Icon(Icons.description_outlined),
                         border: OutlineInputBorder(),
                       ),

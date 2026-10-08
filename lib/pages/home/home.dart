@@ -165,7 +165,7 @@ class _HomeContentState extends State<HomeContent> {
       name: 'Purina Alpo 2Kg',
       category: 'Alimento',
       animalType: 'Perro',
-      description: 'Alimento completo para perros adultos de todas las razas.',
+      description: 'Alimento completo para perros adultos de todías las razas.',
       price: 15000,
       mediaFile: MediaFile(
         fileName: 'alpo.png',

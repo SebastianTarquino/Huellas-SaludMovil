@@ -220,7 +220,7 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
               TextFormField(
                 controller: _descriptionController,
                 decoration: const InputDecoration(
-                  labelText: "Descripción",
+                  labelText: 'Descripción',
                   border: OutlineInputBorder(),
                 ),
                 maxLines: 4,
