@@ -72,6 +72,26 @@ class _UserHomePageState extends State<UserHomePage> {
     ),
   ];
 
+  ImageProvider? _getAvatarImageProvider(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return null;
+    final attach = raw.trim();
+    if (attach.startsWith('http://') || attach.startsWith('https://')) {
+      return NetworkImage(attach);
+    }
+    try {
+      String clean = attach;
+      if (clean.contains(',')) {
+        clean = clean.split(',').last;
+      }
+      clean = clean.replaceAll(RegExp(r'\s+'), '');
+      final bytes = base64Decode(clean);
+      return MemoryImage(bytes);
+    } catch (e) {
+      print('Error al decodificar avatar base64: $e');
+      return null;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -288,18 +308,17 @@ class _UserHomePageState extends State<UserHomePage> {
                         onTap: pickUserImage,
                         child: Stack(
                           children: [
-                            CircleAvatar(
-                              radius: 36,
-                              backgroundColor: const Color(0xFF7E57C2).withOpacity(0.15),
-                              backgroundImage: selectedBase64Image != null && selectedBase64Image!.isNotEmpty
-                                  ? (selectedBase64Image!.startsWith('http')
-                                      ? NetworkImage(selectedBase64Image!) as ImageProvider
-                                      : MemoryImage(base64Decode(selectedBase64Image!)))
-                                  : null,
-                              child: selectedBase64Image == null || selectedBase64Image!.isEmpty
-                                  ? const Icon(Icons.person, size: 40, color: Color(0xFF7E57C2))
-                                  : null,
-                            ),
+                            Builder(builder: (context) {
+                              final avatarProv = _getAvatarImageProvider(selectedBase64Image);
+                              return CircleAvatar(
+                                radius: 36,
+                                backgroundColor: const Color(0xFF7E57C2).withOpacity(0.15),
+                                backgroundImage: avatarProv,
+                                child: avatarProv == null
+                                    ? const Icon(Icons.person, size: 40, color: Color(0xFF7E57C2))
+                                    : null,
+                              );
+                            }),
                             Positioned(
                               bottom: 0,
                               right: 0,

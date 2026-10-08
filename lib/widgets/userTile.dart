@@ -200,7 +200,7 @@ class UserTile extends StatelessWidget {
 
   Widget _buildUserAvatar(Color roleBgColor) {
     if (user.avatarBase64 != null && user.avatarBase64!.isNotEmpty) {
-      final attach = user.avatarBase64!.trim();
+      String attach = user.avatarBase64!.trim();
       if (attach.startsWith('http://') || attach.startsWith('https://')) {
         return CircleAvatar(
           radius: 26,
@@ -209,6 +209,10 @@ class UserTile extends StatelessWidget {
         );
       }
       try {
+        if (attach.contains(',')) {
+          attach = attach.split(',').last;
+        }
+        attach = attach.replaceAll(RegExp(r'\s+'), '');
         final bytes = base64Decode(attach);
         return CircleAvatar(
           radius: 26,

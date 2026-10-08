@@ -14,6 +14,17 @@ class PetCard extends StatelessWidget {
     required this.onProcessTap,
   });
 
+  ImageProvider? _safePetImage(String raw) {
+    try {
+      String clean = raw.trim();
+      if (clean.contains(',')) clean = clean.split(',').last;
+      clean = clean.replaceAll(RegExp(r'\s+'), '');
+      return MemoryImage(base64Decode(clean));
+    } catch (e) {
+      return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -32,7 +43,7 @@ class PetCard extends StatelessWidget {
                   radius: 30,
                   backgroundImage: pet.mediaFile != null &&
                           pet.mediaFile!.attachment.isNotEmpty
-                      ? MemoryImage(base64Decode(pet.mediaFile!.attachment))
+                      ? _safePetImage(pet.mediaFile!.attachment)
                       : null,
                   backgroundColor: Colors.grey[200],
                   child: pet.mediaFile == null ||

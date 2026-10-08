@@ -181,7 +181,12 @@ class ProductCard extends StatelessWidget {
         );
       }
       try {
-        final bytes = base64Decode(attach);
+        String clean = attach;
+        if (clean.contains(',')) {
+          clean = clean.split(',').last;
+        }
+        clean = clean.replaceAll(RegExp(r'\s+'), '');
+        final bytes = base64Decode(clean);
         return Image.memory(
           bytes,
           fit: BoxFit.cover,
