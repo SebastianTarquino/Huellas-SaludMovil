@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/products.dart';
@@ -25,7 +25,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = const Color(0xFF7E57C2);
+    const primaryColor = Color(0xFF7E57C2);
     final cardBg = isDark ? const Color(0xFF1E1E2C) : Colors.white;
     final surfaceBg = isDark ? const Color(0xFF2A2A3D) : const Color(0xFFF8F9FA);
     final textPrimary = isDark ? Colors.white : const Color(0xFF1F2937);
@@ -41,7 +41,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
         slivers: [
           // Header Flotante con Imagen
           SliverAppBar(
-            expandedHeight: 320,
+            expandedHeight: 300,
             pinned: true,
             backgroundColor: isDark ? const Color(0xFF12121D) : Colors.white,
             elevation: 0,
@@ -92,7 +92,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 fit: StackFit.expand,
                 children: [
                   _buildProductImage(widget.product),
-                  // Degradado inferior para suavizar la transición
                   Positioned.fill(
                     child: DecoratedBox(
                       decoration: BoxDecoration(
@@ -114,14 +113,14 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             ),
           ),
 
-          // Contenido principal
+          // Contenido Principal
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(20.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Badges de Categoría y Animal
+                  // Badges de Categoría, Tipo de Animal y Stock
                   Row(
                     children: [
                       Container(
@@ -133,11 +132,11 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.label_outlined, size: 14, color: primaryColor),
+                            const Icon(Icons.label_outlined, size: 14, color: primaryColor),
                             const SizedBox(width: 4),
                             Text(
                               category,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
                                 color: primaryColor,
@@ -169,7 +168,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                         ),
                       ),
                       const Spacer(),
-                      // Stock Badge
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
@@ -195,48 +193,45 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Título y Precio Principal
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          widget.product.name,
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w800,
-                            color: textPrimary,
-                            height: 1.2,
+                  // Título del Producto (Full width)
+                  Text(
+                    widget.product.name,
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: textPrimary,
+                      height: 1.25,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Precio en badge destacado
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF7E57C2), Color(0xFF673AB7)],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: primaryColor.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
                           ),
+                        ],
+                      ),
+                      child: Text(
+                        '\$${formatter.format(widget.product.price)} COP',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Container(
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF7E57C2), Color(0xFF673AB7)],
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: primaryColor.withOpacity(0.3),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Text(
-                          '\${formatter.format(widget.product.price)}',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                   const SizedBox(height: 24),
 
@@ -256,7 +251,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.notes_rounded, size: 18, color: primaryColor),
+                            const Icon(Icons.notes_rounded, size: 18, color: primaryColor),
                             const SizedBox(width: 8),
                             Text(
                               'Descripción del producto',
@@ -284,7 +279,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Selector de Cantidad y Cálculo de Total
+                  // Selector de Cantidad y Total
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -350,8 +345,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              '\${formatter.format(total)}',
-                              style: TextStyle(
+                              '\$${formatter.format(total)}',
+                              style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w900,
                                 color: primaryColor,
@@ -362,7 +357,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 100), // Espacio para la barra inferior
+                  const SizedBox(height: 100),
                 ],
               ),
             ),
@@ -445,7 +440,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
           attach,
           fit: BoxFit.cover,
           width: double.infinity,
-          height: 320,
+          height: 300,
           errorBuilder: (context, error, stackTrace) => _buildFallbackHeader(),
         );
       }
@@ -455,7 +450,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
           bytes,
           fit: BoxFit.cover,
           width: double.infinity,
-          height: 320,
+          height: 300,
           errorBuilder: (context, error, stackTrace) => _buildFallbackHeader(),
         );
       } catch (e) {
