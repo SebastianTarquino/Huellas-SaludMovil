@@ -703,31 +703,30 @@ class _ProductHomePageState extends State<ProductHomePage> {
                                   ),
                           );
 
-                          // Persistir localmente en SharedPreferences para que no desaparezca jamás al cambiar de pestaña
-                          await _productService.saveCustomProduct(newProduct);
-
-                          // Intentar enviar a backend (si existe endpoint)
-                          await _productService.createProduct({
+// Enviar a backend (PostgreSQL)
+                          final ok = await _productService.createProduct({
                             'name': name,
                             'category': selectedCategory,
                             'animalType': selectedAnimal,
                             'description': descriptionController.text.trim(),
                             'price': price,
+                            'imageUrl': selectedBase64Image ?? 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=600&auto=format&fit=crop&q=80',
                           });
 
-                          setState(() {
-                            _products.removeWhere((p) => p.idProduct == newProduct.idProduct);
-                            _products.insert(0, newProduct);
-                          });
-
+                          if (!mounted) return;
                           Navigator.pop(context);
 
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text("Producto '$name' creado exitosamente!"),
-                              backgroundColor: Colors.green,
-                            ),
-                          );
+                          if (ok) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text("¡Producto '$name' creado exitosamente!"),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          } else {
+                            await _productService.saveCustomProduct(newProduct);
+                          }
+                          _loadProducts();
                         },
                       ),
                     ),
@@ -1267,31 +1266,34 @@ class _ProductHomePageState extends State<ProductHomePage> {
   void _confirmDeleteProduct(Product product) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Eliminar Producto'),
         content: Text('¿Estás seguro de que deseas eliminar "${product.name}"?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancelar'),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () async {
-              Navigator.pop(context);
-              final ok = await _productService.deleteProduct(product.idProduct);
-              if (mounted) {
-                if (ok) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Producto eliminado exitosamente')),
-                  );
-                  _loadProducts();
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Error al eliminar el producto')),
-                  );
-                }
-              }
+              Navigator.pop(dialogContext);
+              final productName = product.name;
+
+              setState(() {
+                _products.removeWhere((p) => p.idProduct == product.idProduct);
+              });
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('¡Producto "$productName" eliminado exitosamente!'),
+                  backgroundColor: Colors.redAccent,
+                  duration: const Duration(seconds: 3),
+                ),
+              );
+
+              await _productService.deleteProduct(product.idProduct);
+              _loadProducts();
             },
             child: const Text('Eliminar', style: TextStyle(color: Colors.white)),
           ),
