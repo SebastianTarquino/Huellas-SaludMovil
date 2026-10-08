@@ -25,14 +25,14 @@ class _ProductHomePageState extends State<ProductHomePage> {
   // ðŸ›¡ï¸ Rol de usuario
   String _userRole = 'CLIENTE';
 
-  // ðŸ” Estado de BÃºsqueda y Filtros
+  // ðŸ” Estado de Búsqueda y Filtros
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   String _selectedCategory = 'Todas';
   String _selectedAnimalType = 'Todos';
   String _selectedSort = 'Sin ordenar';
 
-  // Productos de demostraciÃ³n completos para cada categorÃ­a y tipo de animal
+  // Productos de demostración completos para cada categoría y tipo de animal
   final List<Product> _defaultMockProducts = [
     // --- ALIMENTO ---
     Product(
@@ -50,10 +50,10 @@ class _ProductHomePageState extends State<ProductHomePage> {
     ),
     Product(
       idProduct: 'mock-2',
-      name: 'Agility Gold PequeÃ±os Adultos',
+      name: 'Agility Gold Pequeños Adultos',
       category: 'Alimento',
       animalType: 'Perro',
-      description: 'NutriciÃ³n de alta calidad para perros de razas pequeÃ±as.',
+      description: 'Nutrición de alta calidad para perros de razas pequeñas.',
       price: 42000,
       mediaFile: MediaFile(
         fileName: 'agility.png',
@@ -66,7 +66,7 @@ class _ProductHomePageState extends State<ProductHomePage> {
       name: 'Cat Chow Gatitos 1.5Kg',
       category: 'Alimento',
       animalType: 'Gato',
-      description: 'FÃ³rmula nutritiva con DHA para el desarrollo saludable de gatitos.',
+      description: 'Fórmula nutritiva con DHA para el desarrollo saludable de gatitos.',
       price: 28000,
       mediaFile: MediaFile(
         fileName: 'catchow.png',
@@ -79,7 +79,7 @@ class _ProductHomePageState extends State<ProductHomePage> {
       name: 'Semillas Mixtas para Canarios 1Kg',
       category: 'Alimento',
       animalType: 'Aves',
-      description: 'Mezcla balanceada de alpiste y semillas naturales para aves domÃ©sticas.',
+      description: 'Mezcla balanceada de alpiste y semillas naturales para aves domésticas.',
       price: 12000,
       mediaFile: MediaFile(
         fileName: 'semillas.png',
@@ -94,7 +94,7 @@ class _ProductHomePageState extends State<ProductHomePage> {
       name: 'Juguete Kong Classic Medium',
       category: 'Juguetes',
       animalType: 'Perro',
-      description: 'Juguete de caucho sÃºper duradero para rellenar con snacks.',
+      description: 'Juguete de caucho súper duradero para rellenar con snacks.',
       price: 45000,
       mediaFile: MediaFile(
         fileName: 'kong.png',
@@ -161,7 +161,7 @@ class _ProductHomePageState extends State<ProductHomePage> {
       name: 'Antigulpas y garrapatas NexGard',
       category: 'Medicinas',
       animalType: 'Perro',
-      description: 'Tableta masticable sabor a carne para protecciÃ³n de 30 dÃ­as.',
+      description: 'Tableta masticable sabor a carne para protección de 30 días.',
       price: 52000,
       mediaFile: MediaFile(
         fileName: 'nexgard.png',
@@ -174,7 +174,7 @@ class _ProductHomePageState extends State<ProductHomePage> {
       name: 'Pipeta Antipulgas Revolution Gatos',
       category: 'Medicinas',
       animalType: 'Gato',
-      description: 'Tratamiento tÃ³pico seguro y eficaz contra parÃ¡sitos en gatos.',
+      description: 'Tratamiento tópico seguro y eficaz contra parásitos en gatos.',
       price: 48000,
       mediaFile: MediaFile(
         fileName: 'revolution.png',
@@ -184,7 +184,7 @@ class _ProductHomePageState extends State<ProductHomePage> {
     ),
     Product(
       idProduct: 'mock-10b',
-      name: 'MultivitamÃ­nico Canino en Jarabe',
+      name: 'Multivitamínico Canino en Jarabe',
       category: 'Medicinas',
       animalType: 'Perro',
       description: 'Suplemento nutricional con omega 3 y vitaminas A, D, E.',
@@ -215,7 +215,7 @@ class _ProductHomePageState extends State<ProductHomePage> {
       name: 'Comedero Doble Acero Inoxidable',
       category: 'Accesorios',
       animalType: 'Gato',
-      description: 'Base antideslizante con platos desmontables fÃ¡ciles de lavar.',
+      description: 'Base antideslizante con platos desmontables fáciles de lavar.',
       price: 22000,
       mediaFile: MediaFile(
         fileName: 'comedero.png',
@@ -228,7 +228,7 @@ class _ProductHomePageState extends State<ProductHomePage> {
       name: 'Jaula Espaciosa para Aves',
       category: 'Accesorios',
       animalType: 'Aves',
-      description: 'Jaula metÃ¡lica resistente con comederos y columpios incluidos.',
+      description: 'Jaula metálica resistente con comederos y columpios incluidos.',
       price: 110000,
       mediaFile: MediaFile(
         fileName: 'jaula.png',
@@ -238,10 +238,10 @@ class _ProductHomePageState extends State<ProductHomePage> {
     ),
     Product(
       idProduct: 'mock-13b',
-      name: 'Cama OrtopÃ©dica Acolchada',
+      name: 'Cama Ortopédica Acolchada',
       category: 'Accesorios',
       animalType: 'Perro',
-      description: 'Cama de descanso ergonÃ³mica con espuma viscoelÃ¡stica lavable.',
+      description: 'Cama de descanso ergonómica con espuma viscoelástica lavable.',
       price: 85000,
       mediaFile: MediaFile(
         fileName: 'cama.png',
@@ -256,7 +256,7 @@ class _ProductHomePageState extends State<ProductHomePage> {
       name: 'Arena para Gatos Aglomerante 5Kg',
       category: 'Higiene',
       animalType: 'Gato',
-      description: 'Arena bentonita de alta absorciÃ³n con control de olores.',
+      description: 'Arena bentonita de alta absorción con control de olores.',
       price: 25000,
       mediaFile: MediaFile(
         fileName: 'arena.png',
@@ -266,10 +266,10 @@ class _ProductHomePageState extends State<ProductHomePage> {
     ),
     Product(
       idProduct: 'mock-15',
-      name: 'ShampÃº Medicado HipoalergÃ©nico',
+      name: 'Shampú Medicado Hipoalergénico',
       category: 'Higiene',
       animalType: 'Perro',
-      description: 'FÃ³rmula suave para pieles sensibles con PH neutro.',
+      description: 'Fórmula suave para pieles sensibles con PH neutro.',
       price: 32000,
       mediaFile: MediaFile(
         fileName: 'shampoo.png',
@@ -279,10 +279,10 @@ class _ProductHomePageState extends State<ProductHomePage> {
     ),
     Product(
       idProduct: 'mock-16',
-      name: 'Cepillo Quitapelos AutomÃ¡tico',
+      name: 'Cepillo Quitapelos Automático',
       category: 'Higiene',
       animalType: 'Gato',
-      description: 'Cepillo de autolimpieza para remociÃ³n eficiente de pelo muerto.',
+      description: 'Cepillo de autolimpieza para remoción eficiente de pelo muerto.',
       price: 19000,
       mediaFile: MediaFile(
         fileName: 'cepillo.png',
@@ -292,10 +292,10 @@ class _ProductHomePageState extends State<ProductHomePage> {
     ),
     Product(
       idProduct: 'mock-17',
-      name: 'PaÃ±ales Desechables Caninos 10 Unidades',
+      name: 'Pañales Desechables Caninos 10 Unidades',
       category: 'Higiene',
       animalType: 'Perro',
-      description: 'PaÃ±ales ultra absorbentes con orificio para la cola.',
+      description: 'Pañales ultra absorbentes con orificio para la cola.',
       price: 26000,
       mediaFile: MediaFile(
         fileName: 'panales.png',
@@ -386,7 +386,7 @@ class _ProductHomePageState extends State<ProductHomePage> {
     }
   }
 
-  // Listas de categorÃ­as y tipos de animales disponibles
+  // Listas de categorías y tipos de animales disponibles
   List<String> get _availableCategories {
     final categoriesSet = <String>{'Todas', 'Alimento', 'Juguetes', 'Medicinas', 'Accesorios', 'Higiene'};
     for (var p in _products) {
@@ -407,10 +407,10 @@ class _ProductHomePageState extends State<ProductHomePage> {
     return animalSet.toList();
   }
 
-  // Filtrado de productos segÃºn bÃºsqueda y filtros aplicados
+  // Filtrado de productos según búsqueda y filtros aplicados
   List<Product> get _filteredProducts {
     return _products.where((product) {
-      // 1. BÃºsqueda por texto
+      // 1. Búsqueda por texto
       if (_searchQuery.isNotEmpty) {
         final query = _searchQuery.toLowerCase();
         final nameMatches = product.name.toLowerCase().contains(query);
@@ -422,7 +422,7 @@ class _ProductHomePageState extends State<ProductHomePage> {
         }
       }
 
-      // 2. Filtro de CategorÃ­a
+      // 2. Filtro de Categoría
       if (_selectedCategory != 'Todas') {
         final prodCat = product.category.toLowerCase().trim();
         final selCat = _selectedCategory.toLowerCase().trim();
@@ -576,7 +576,7 @@ class _ProductHomePageState extends State<ProductHomePage> {
                     ),
                     const SizedBox(height: 12),
 
-                    // CategorÃ­a
+                    // Categoría
                     DropdownButtonFormField<String>(
                       value: selectedCategory,
                       decoration: const InputDecoration(
@@ -610,7 +610,7 @@ class _ProductHomePageState extends State<ProductHomePage> {
                     ),
                     const SizedBox(height: 12),
 
-                    // DescripciÃ³n
+                    // Descripción
                     TextField(
                       controller: descriptionController,
                       maxLines: 2,
@@ -622,7 +622,7 @@ class _ProductHomePageState extends State<ProductHomePage> {
                     ),
                     const SizedBox(height: 12),
 
-                    // SelecciÃ³n de Imagen
+                    // Selección de Imagen
                     InkWell(
                       onTap: pickProductImage,
                       borderRadius: BorderRadius.circular(8),
@@ -639,8 +639,8 @@ class _ProductHomePageState extends State<ProductHomePage> {
                             Expanded(
                               child: Text(
                                 selectedBase64Image != null
-                                    ? "Imagen cargada âœ“"
-                                    : "Seleccionar Imagen de GalerÃ­a",
+                                    ? "Imagen cargada"
+                                    : "Seleccionar Imagen de Galería",
                                 style: TextStyle(
                                   color: selectedBase64Image != null ? Colors.green : textColor,
                                   fontWeight: selectedBase64Image != null
@@ -655,7 +655,7 @@ class _ProductHomePageState extends State<ProductHomePage> {
                     ),
                     const SizedBox(height: 24),
 
-                    // BotÃ³n Guardar
+                    // Botón Guardar
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
@@ -703,7 +703,7 @@ class _ProductHomePageState extends State<ProductHomePage> {
                                   ),
                           );
 
-                          // Persistir localmente en SharedPreferences para que no desaparezca jamÃ¡s al cambiar de pestaÃ±a
+                          // Persistir localmente en SharedPreferences para que no desaparezca jamás al cambiar de pestaña
                           await _productService.saveCustomProduct(newProduct);
 
                           // Intentar enviar a backend (si existe endpoint)
@@ -724,7 +724,7 @@ class _ProductHomePageState extends State<ProductHomePage> {
 
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text("Â¡Producto '$name' creado exitosamente!"),
+                              content: Text("Producto '$name' creado exitosamente!"),
                               backgroundColor: Colors.green,
                             ),
                           );
@@ -782,7 +782,7 @@ class _ProductHomePageState extends State<ProductHomePage> {
                           const Icon(Icons.tune, color: Color(0xFF7E57C2)),
                           const SizedBox(width: 8),
                           Text(
-                            "Filtros de BÃºsqueda",
+                            "Filtros de Búsqueda",
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -799,9 +799,9 @@ class _ProductHomePageState extends State<ProductHomePage> {
                   ),
                   const Divider(height: 24),
 
-                  // SecciÃ³n CategorÃ­a
+                  // Sección Categoría
                   Text(
-                    "CategorÃ­a",
+                    "Categoría",
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
@@ -835,7 +835,7 @@ class _ProductHomePageState extends State<ProductHomePage> {
                   ),
                   const SizedBox(height: 20),
 
-                  // SecciÃ³n Tipo de Animal (SIN EMOJIS)
+                  // Sección Tipo de Animal (SIN EMOJIS)
                   Text(
                     "Tipo de Animal",
                     style: TextStyle(
@@ -871,7 +871,7 @@ class _ProductHomePageState extends State<ProductHomePage> {
                   ),
                   const SizedBox(height: 20),
 
-                  // SecciÃ³n Ordenar por Precio
+                  // Sección Ordenar por Precio
                   Text(
                     "Ordenar por Precio",
                     style: TextStyle(
@@ -907,7 +907,7 @@ class _ProductHomePageState extends State<ProductHomePage> {
                   ),
                   const SizedBox(height: 28),
 
-                  // Botones de acciÃ³n
+                  // Botones de acción
                   Row(
                     children: [
                       Expanded(
@@ -980,7 +980,7 @@ class _ProductHomePageState extends State<ProductHomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ðŸ” BARRA DE BÃšSQUEDA
+            // ðŸ” BARRA DE BÁšSQUEDA
             Container(
               decoration: BoxDecoration(
                 color: searchBg,
@@ -1022,7 +1022,7 @@ class _ProductHomePageState extends State<ProductHomePage> {
             ),
             const SizedBox(height: 12),
 
-            // ðŸŽ›ï¸ FILTROS Y BOTÃ“N "CREAR PRODUCTO" (RESTRINGIDO A ADMIN Y VETERINARIO)
+            // ðŸŽ›ï¸ FILTROS Y BOTÁ“N "CREAR PRODUCTO" (RESTRINGIDO A ADMIN Y VETERINARIO)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -1074,7 +1074,7 @@ class _ProductHomePageState extends State<ProductHomePage> {
                   ),
                 ),
 
-                // âž• BOTÃ“N "CREAR PRODUCTO" (PestaÃ±a derecha, solo visible para ADMIN y VETERINARIO)
+                // âž• BOTÁ“N "CREAR PRODUCTO" (Pestaña derecha, solo visible para ADMIN y VETERINARIO)
                 if (_canCreateProduct)
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
@@ -1219,7 +1219,7 @@ class _ProductHomePageState extends State<ProductHomePage> {
                               ),
                               const SizedBox(height: 6),
                               Text(
-                                "Prueba cambiando la bÃºsqueda o los filtros",
+                                "Prueba cambiando la búsqueda o los filtros",
                                 style: TextStyle(
                                   fontSize: 13,
                                   color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -1243,7 +1243,7 @@ class _ProductHomePageState extends State<ProductHomePage> {
                                   },
                                   icon: const Icon(Icons.refresh, color: Colors.white),
                                   label: const Text(
-                                    "Limpiar bÃºsqueda y filtros",
+                                    "Limpiar búsqueda y filtros",
                                     style: TextStyle(color: Colors.white),
                                   ),
                                 ),
