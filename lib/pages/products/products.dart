@@ -1390,7 +1390,7 @@ class _ProductHomePageState extends State<ProductHomePage> {
                         controller: priceController,
                         keyboardType: TextInputType.number,
                         decoration: const InputDecoration(
-                          labelText: 'Precio ($)',
+                          labelText: 'Precio (\$)',
                           prefixIcon: Icon(Icons.attach_money),
                           border: OutlineInputBorder(),
                         ),
