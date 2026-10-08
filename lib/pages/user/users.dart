@@ -123,9 +123,11 @@ class _UserHomePageState extends State<UserHomePage> {
       final combinedList = <User>[];
       combinedList.addAll(fetchedUsers);
 
-      for (var demoUser in _initialDemoUsers) {
-        if (!deletedDocs.contains(demoUser.documentNumber)) {
-          combinedList.add(demoUser);
+      if (fetchedUsers.isEmpty) {
+        for (var demoUser in _initialDemoUsers) {
+          if (!deletedDocs.contains(demoUser.documentNumber)) {
+            combinedList.add(demoUser);
+          }
         }
       }
 
