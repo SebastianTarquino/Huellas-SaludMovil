@@ -120,7 +120,29 @@ class ProductService {
       return false;
     }
   }
+
+  Future<bool> updateProduct(String id, Map<String, dynamic> productData) async {
+    try {
+      final response = await _dio.put(
+        'product/$id',
+        data: productData,
+        options: Options(validateStatus: (status) => true),
+      );
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> deleteProduct(String id) async {
+    try {
+      final response = await _dio.delete(
+        'product/$id',
+        options: Options(validateStatus: (status) => true),
+      );
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      return false;
+    }
+  }
 }
-
-
-

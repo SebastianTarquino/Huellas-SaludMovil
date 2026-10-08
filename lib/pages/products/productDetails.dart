@@ -5,22 +5,51 @@ import 'dart:convert';
 
 class ProductDetailsScreen extends StatefulWidget {
   final Product product;
+  final Function(Product)? onEdit;
+  final Function(Product)? onDelete;
 
-  const ProductDetailsScreen({super.key, required this.product});
+  const ProductDetailsScreen({
+    super.key,
+    required this.product,
+    this.onEdit,
+    this.onDelete,
+  });
 
   @override
   State<ProductDetailsScreen> createState() => _ProductDetailsScreenState();
 }
 
 class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
-  int quantity = 1; // cantidad inicial
+  int quantity = 1;
 
   @override
   Widget build(BuildContext context) {
     double total = widget.product.price * quantity;
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.product.name)),
+      appBar: AppBar(
+        title: Text(widget.product.name),
+        actions: [
+          if (widget.onEdit != null)
+            IconButton(
+              icon: const Icon(Icons.edit_outlined),
+              tooltip: 'Editar producto',
+              onPressed: () {
+                Navigator.pop(context);
+                widget.onEdit!(widget.product);
+              },
+            ),
+          if (widget.onDelete != null)
+            IconButton(
+              icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+              tooltip: 'Eliminar producto',
+              onPressed: () {
+                Navigator.pop(context);
+                widget.onDelete!(widget.product);
+              },
+            ),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -43,7 +72,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  // 🔹 esto limita el texto al espacio libre
                   child: Text(
                     widget.product.name,
                     style: const TextStyle(
@@ -51,7 +79,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                     maxLines: 1,
-                    overflow: TextOverflow.ellipsis, // puntos suspensivos (...)
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 Container(
@@ -62,11 +90,11 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   decoration: BoxDecoration(
                     color: Theme.of(
                       context,
-                    ).floatingActionButtonTheme.backgroundColor,
+                    ).floatingActionButtonTheme.backgroundColor ?? const Color(0xFF7E57C2),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    "\$${formatter.format(widget.product.price)}",
+                    "\$" + "${formatter.format(widget.product.price)}",
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -78,7 +106,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             const SizedBox(height: 8),
 
             Text(
-              widget.product.description ?? "Sin descripción disponible",
+              widget.product.description.isNotEmpty ? widget.product.description : "Sin descripción disponible",
               style: const TextStyle(fontSize: 14, color: Colors.black87),
             ),
             const SizedBox(height: 20),
@@ -110,7 +138,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   ],
                 ),
                 Text(
-                  "Total \$${formatter.format(total)}",
+                  "Total \$" + "${formatter.format(total)}",
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -124,6 +152,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF7E57C2),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -165,7 +194,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     );
   }
 
-    Widget _decodeImage(String base64String) {
+  Widget _decodeImage(String base64String) {
     if (base64String.startsWith('http://') || base64String.startsWith('https://')) {
       return Image.network(
         base64String,

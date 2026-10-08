@@ -6,18 +6,21 @@ import 'package:huellas_salud_movil/models/products.dart';
 class ProductCard extends StatelessWidget {
   final Product product;
   final VoidCallback onTap;
+  final Function(Product)? onEdit;
+  final Function(Product)? onDelete;
 
   const ProductCard({
     super.key,
     required this.product,
     required this.onTap,
+    this.onEdit,
+    this.onDelete,
   });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // Subtítulo / Categoría
     String categoryText = product.category.trim();
     if (categoryText.isEmpty) {
       categoryText = product.animalType.trim().isNotEmpty ? product.animalType.trim() : 'Producto';
@@ -50,22 +53,71 @@ class ProductCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 🖼️ Contenedor de la Imagen
-                Container(
-                  height: 110,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF2A2A3D) : const Color(0xFFF8F9FA),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: _buildProductImage(product),
-                  ),
+                // Contenedor de la Imagen con botón de opciones
+                Stack(
+                  children: [
+                    Container(
+                      height: 110,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF2A2A3D) : const Color(0xFFF8F9FA),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: _buildProductImage(product),
+                      ),
+                    ),
+                    if (onEdit != null || onDelete != null)
+                      Positioned(
+                        top: 2,
+                        right: 2,
+                        child: Container(
+                          height: 30,
+                          width: 30,
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.4),
+                            shape: BoxShape.circle,
+                          ),
+                          child: PopupMenuButton<String>(
+                            padding: EdgeInsets.zero,
+                            icon: const Icon(Icons.more_vert, size: 18, color: Colors.white),
+                            onSelected: (val) {
+                              if (val == 'edit' && onEdit != null) onEdit!(product);
+                              if (val == 'delete' && onDelete != null) onDelete!(product);
+                            },
+                            itemBuilder: (context) => [
+                              if (onEdit != null)
+                                const PopupMenuItem(
+                                  value: 'edit',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.edit_outlined, size: 18, color: Color(0xFF7E57C2)),
+                                      SizedBox(width: 8),
+                                      Text('Editar'),
+                                    ],
+                                  ),
+                                ),
+                              if (onDelete != null)
+                                const PopupMenuItem(
+                                  value: 'delete',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.delete_outline, size: 18, color: Colors.red),
+                                      SizedBox(width: 8),
+                                      Text('Eliminar', style: TextStyle(color: Colors.red)),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 10),
 
-                // 🏷️ Badge de Categoría
+                // Badge de Categoría
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
@@ -85,7 +137,7 @@ class ProductCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
 
-                // 📝 Nombre del Producto
+                // Nombre del Producto
                 Text(
                   product.name,
                   style: TextStyle(
@@ -99,9 +151,9 @@ class ProductCard extends StatelessWidget {
                 ),
                 const Spacer(),
 
-                // 💰 Precio
+                // Precio
                 Text(
-                  '\$${formatter.format(product.price)}',
+                  '\$' + '${formatter.format(product.price)}',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
@@ -159,7 +211,7 @@ class ProductCard extends StatelessWidget {
 }
 
 final formatter = NumberFormat.currency(
-  locale: 'es_CO', // Español Colombia
+  locale: 'es_CO',
   symbol: '',
   decimalDigits: 0,
 );

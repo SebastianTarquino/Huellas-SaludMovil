@@ -468,7 +468,7 @@ class _ProductHomePageState extends State<ProductHomePage> {
   void _onProductTap(Product product) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => ProductDetailsScreen(product: product)),
+      MaterialPageRoute(builder: (context) => ProductDetailsScreen(product: product, onEdit: _showEditProductModal, onDelete: _confirmDeleteProduct)),
     );
   }
 
@@ -1263,5 +1263,217 @@ class _ProductHomePageState extends State<ProductHomePage> {
       ),
     );
   }
-}
 
+  void _confirmDeleteProduct(Product product) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Eliminar Producto'),
+        content: Text('¿Estás seguro de que deseas eliminar "${product.name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () async {
+              Navigator.pop(context);
+              final ok = await _productService.deleteProduct(product.idProduct);
+              if (mounted) {
+                if (ok) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Producto eliminado exitosamente')),
+                  );
+                  _loadProducts();
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Error al eliminar el producto')),
+                  );
+                }
+              }
+            },
+            child: const Text('Eliminar', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEditProductModal(Product product) {
+    final nameController = TextEditingController(text: product.name);
+    final priceController = TextEditingController(text: product.price.toInt().toString());
+    final descriptionController = TextEditingController(text: product.description);
+    final imageUrlController = TextEditingController(
+      text: product.mediaFile != null ? product.mediaFile!.attachment : '',
+    );
+    String selectedCategory = product.category.isNotEmpty ? product.category : 'Alimento';
+    String selectedAnimalType = product.animalType.isNotEmpty ? product.animalType : 'Perro';
+    bool isSaving = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Editar Producto',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Nombre del producto',
+                          prefixIcon: Icon(Icons.shopping_bag_outlined),
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        value: selectedCategory,
+                        decoration: const InputDecoration(
+                          labelText: 'Categoría',
+                          prefixIcon: Icon(Icons.category_outlined),
+                          border: OutlineInputBorder(),
+                        ),
+                        items: ['Alimento', 'Juguetes', 'Medicinas', 'Accesorios', 'Higiene']
+                            .map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))
+                            .toList(),
+                        onChanged: (val) {
+                          if (val != null) setModalState(() => selectedCategory = val);
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        value: selectedAnimalType,
+                        decoration: const InputDecoration(
+                          labelText: 'Tipo de Animal',
+                          prefixIcon: Icon(Icons.pets),
+                          border: OutlineInputBorder(),
+                        ),
+                        items: ['Perro', 'Gato', 'Aves', 'Otros']
+                            .map((a) => DropdownMenuItem(value: a, child: Text(a)))
+                            .toList(),
+                        onChanged: (val) {
+                          if (val != null) setModalState(() => selectedAnimalType = val);
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: priceController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Precio ($)',
+                          prefixIcon: Icon(Icons.attach_money),
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: descriptionController,
+                        maxLines: 2,
+                        decoration: const InputDecoration(
+                          labelText: 'Descripción',
+                          prefixIcon: Icon(Icons.description_outlined),
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: imageUrlController,
+                        decoration: const InputDecoration(
+                          labelText: 'URL de la imagen (opcional)',
+                          prefixIcon: Icon(Icons.image_outlined),
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF7E57C2),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          onPressed: isSaving
+                              ? null
+                              : () async {
+                                  if (nameController.text.trim().isEmpty) return;
+                                  setModalState(() => isSaving = true);
+
+                                  final updateData = {
+                                    'name': nameController.text.trim(),
+                                    'category': selectedCategory,
+                                    'animalType': selectedAnimalType,
+                                    'price': double.tryParse(priceController.text) ?? product.price,
+                                    'description': descriptionController.text.trim(),
+                                    'imageUrl': imageUrlController.text.trim(),
+                                    'mediaFile': imageUrlController.text.trim().isNotEmpty ? {
+                                      'fileName': 'product.jpg',
+                                      'contentType': 'image/jpeg',
+                                      'attachment': imageUrlController.text.trim()
+                                    } : null
+                                  };
+
+                                  final ok = await _productService.updateProduct(product.idProduct, updateData);
+                                  if (mounted) {
+                                    Navigator.pop(context);
+                                    if (ok) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Producto actualizado exitosamente')),
+                                      );
+                                      _loadProducts();
+                                    } else {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Error al actualizar el producto')),
+                                      );
+                                    }
+                                  }
+                                },
+                          child: isSaving
+                              ? const CircularProgressIndicator(color: Colors.white)
+                              : const Text('Guardar Cambios', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+}

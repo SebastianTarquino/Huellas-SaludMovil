@@ -5,6 +5,8 @@ import 'productCard.dart';
 class ProductList extends StatelessWidget {
   final List<Product> products;
   final Function(Product) onProductTap;
+  final Function(Product)? onEdit;
+  final Function(Product)? onDelete;
   final bool isLoading;
   final bool hasMore;
   final VoidCallback? onLoadMore;
@@ -13,6 +15,8 @@ class ProductList extends StatelessWidget {
     super.key,
     required this.products,
     required this.onProductTap,
+    this.onEdit,
+    this.onDelete,
     this.isLoading = false,
     this.hasMore = true,
     this.onLoadMore,
@@ -31,10 +35,10 @@ class ProductList extends StatelessWidget {
       },
       child: GridView.builder(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2, // dos columnas
+          crossAxisCount: 2,
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
-          childAspectRatio: 0.68, // Proporción perfecta para la tarjeta estilo mockup
+          childAspectRatio: 0.68,
         ),
         padding: const EdgeInsets.only(bottom: 16),
         itemCount: products.length + (isLoading && hasMore ? 1 : 0),
@@ -47,10 +51,11 @@ class ProductList extends StatelessWidget {
           return ProductCard(
             product: product,
             onTap: () => onProductTap(product),
+            onEdit: onEdit,
+            onDelete: onDelete,
           );
         },
       ),
     );
   }
 }
-
