@@ -134,13 +134,27 @@ class ProductService {
     }
   }
 
+  
   Future<bool> deleteProduct(String id) async {
     try {
       final response = await _dio.delete(
         'product/$id',
         options: Options(validateStatus: (status) => true),
       );
-      return response.statusCode == 200 || response.statusCode == 201;
+
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final str = prefs.getString(_customProductsKey);
+        if (str != null && str.isNotEmpty) {
+          final List<dynamic> jsonList = jsonDecode(str);
+          jsonList.removeWhere((item) => (item['idProduct'] ?? item['id'] ?? '').toString() == id.toString());
+          await prefs.setString(_customProductsKey, jsonEncode(jsonList));
+        }
+      } catch (e) {
+        print("Error al remover de SharedPreferences: $e");
+      }
+
+      return response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 204;
     } catch (e) {
       return false;
     }
